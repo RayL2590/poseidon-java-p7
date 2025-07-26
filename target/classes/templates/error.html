@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Application Error</title>
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+    <style>
+        .error-details {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .stack-trace {
+            background-color: #f1f1f1;
+            padding: 10px;
+            border-radius: 3px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+<div class="container mt-5">
+    <div class="alert alert-danger">
+        <h2>Une erreur est survenue</h2>
+        
+        <!-- Message d'erreur principal -->
+        <p th:if="${errorMessage}" th:text="${errorMessage}">Erreur inconnue</p>
+        
+        <!-- Informations détaillées d'erreur (en mode développement) -->
+        <div th:if="${error}" class="error-details">
+            <h5>Détails de l'erreur :</h5>
+            <p><strong>Status:</strong> <span th:text="${status}">N/A</span></p>
+            <p><strong>Error:</strong> <span th:text="${error}">N/A</span></p>
+            <p><strong>Exception:</strong> <span th:text="${exception}">N/A</span></p>
+            <p><strong>Message:</strong> <span th:text="${message}">N/A</span></p>
+            <p><strong>Path:</strong> <span th:text="${path}">N/A</span></p>
+            <p><strong>Timestamp:</strong> <span th:text="${timestamp}">N/A</span></p>
+        </div>
+        
+        <!-- Stack trace (uniquement en développement) -->
+        <div th:if="${trace}" class="error-details">
+            <h5>Stack Trace :</h5>
+            <div class="stack-trace">
+                <pre th:text="${trace}">No trace available</pre>
+            </div>
+        </div>
+        
+        <!-- Actions recommandées -->
+        <div class="mt-4">
+            <h5>Que faire ?</h5>
+            <ul>
+                <li>Vérifiez que tous les champs obligatoires sont remplis</li>
+                <li>Assurez-vous que les valeurs numériques sont valides</li>
+                <li>Contactez l'administrateur si le problème persiste</li>
+            </ul>
+        </div>
+        
+        <!-- Boutons de navigation -->
+        <div class="mt-4">
+            <a href="javascript:history.back()" class="btn btn-secondary">Retour</a>
+            <a href="/bidList/list" class="btn btn-primary">Liste des Bids</a>
+            <a href="/" class="btn btn-outline-primary">Accueil</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Auto-hide alerts après 10 secondes
+    setTimeout(function() {
+        const alerts = document.querySelectorAll('.alert');
+        alerts.forEach(alert => {
+            if (alert.classList.contains('alert-warning') || alert.classList.contains('alert-info')) {
+                alert.style.opacity = '0.5';
+            }
+        });
+    }, 10000);
+</script>
+
+</body>
+</html>
