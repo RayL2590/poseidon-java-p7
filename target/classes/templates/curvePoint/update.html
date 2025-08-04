@@ -3,28 +3,51 @@
 	  xmlns:th="http://www.thymeleaf.org">
 <head>
 <meta charset="utf-8"/>
-<title>Home</title>
+<title>Update Curve Point</title>
 <link rel="stylesheet" href="../../css/bootstrap.min.css" >
 </head>
 <body>
 <div class="container">
 	<div class="row">
-		<h2>Update CurvePoint</h2>
+		<h2>Update Curve Point</h2>
+	</div>
+
+	<!-- Messages de succès -->
+	<div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+		<strong>Success!</strong> <span th:text="${successMessage}"></span>
+		<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+			<span aria-hidden="true">&times;</span>
+		</button>
+	</div>
+	
+	<!-- Messages d'erreur -->
+	<div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+		<strong>Error!</strong> <span th:text="${errorMessage}"></span>
+		<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+			<span aria-hidden="true">&times;</span>
+		</button>
 	</div>
 
 	<div class="row">
-		<form action="#" th:action="@{/curvePoint/update/{id}(id=${curvePoint.id})}" th:object="${curvePoint}" method="post" class="form-horizontal" style="width: 100%">
+		<form action="#" th:action="@{/curvePoint/update/{id}(id=${curvePointDTO.id})}" th:object="${curvePointDTO}" method="post" class="form-horizontal" style="width: 100%">
+			<div class="form-group">
+				<label for="curveId" class="col-sm-2 control-label">Curve ID</label>
+				<div class="col-sm-10">
+					<input type="number" th:field="*{curveId}" id="curveId" placeholder="Curve ID" class="col-4" min="1">
+					<p class="text-danger" th:if="${#fields.hasErrors('curveId')}" th:errors="*{curveId}"></p>
+				</div>
+			</div>
 			<div class="form-group">
 				<label for="term" class="col-sm-2 control-label">Term</label>
 				<div class="col-sm-10">
-					<input type="text" th:field="*{term}" id="term" placeholder="Term" class="col-4">
+					<input type="number" th:field="*{term}" id="term" placeholder="Term" class="col-4" step="0.0001" min="0">
 					<p class="text-danger" th:if="${#fields.hasErrors('term')}" th:errors="*{term}"></p>
 				</div>
 			</div>
 			<div class="form-group">
 				<label for="value" class="col-sm-2 control-label">Value</label>
 				<div class="col-sm-10">
-					<input type="number" th:field="*{value}" id="value" placeholder="Value" class="col-4">
+					<input type="number" th:field="*{value}" id="value" placeholder="Value" class="col-4" step="0.0001">
 					<p class="text-danger" th:if="${#fields.hasErrors('value')}" th:errors="*{value}"></p>
 				</div>
 			</div>
@@ -38,7 +61,12 @@
 			</div>
 		</form>
 	</div>
-
 </div>
+
+<!-- Bootstrap JS pour les alertes -->
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+
 </body>
 </html>

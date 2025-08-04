@@ -3,8 +3,16 @@
 	  xmlns:th="http://www.thymeleaf.org">
 <head>
 <meta charset="utf-8"/>
-<title>Home</title>
+<title>Curve Point List</title>
 <link rel="stylesheet" href="../../css/bootstrap.min.css" >
+<style>
+    .alert {
+        margin-top: 20px;
+    }
+    .table-actions {
+        white-space: nowrap;
+    }
+</style>
 </head>
 <body>
 <div class="container">
@@ -17,39 +25,93 @@
 			<a href="/ruleName/list">Rule</a>
 		</div>
 		<div class="col-6 text-right">
-			Logged in user: <b th:inline="text"  class="user"> [[${#httpServletRequest.remoteUser}]] </b>
-			<form th:action="@{/app-logout}" method="POST">
-				<input type="submit" value="Logout"/>
+			Logged in user: <b class="user" th:text="${#authentication?.name}">Anonymous</b>
+			<form th:action="@{/app-logout}" method="POST" style="display: inline;">
+				<input type="submit" value="Logout" class="btn btn-outline-secondary btn-sm"/>
 			</form>
 		</div>
 	</div>
-	<div class="row"><h2>Curve Point List</h2></div>
+	
+	<!-- Messages de succès -->
+	<div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+		<strong>Success!</strong> <span th:text="${successMessage}"></span>
+		<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+			<span aria-hidden="true">&times;</span>
+		</button>
+	</div>
+	
+	<!-- Messages d'erreur -->
+	<div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+		<strong>Error!</strong> <span th:text="${errorMessage}"></span>
+		<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+			<span aria-hidden="true">&times;</span>
+		</button>
+	</div>
+	
 	<div class="row">
-		<a href="/curvePoint/add" class="btn btn-primary btn-sm">Add New</a>
-		<table class="table table-bordered">
-			<thead>
-				<tr>
-					<th>Id</th>
-					<th>CurvePointId</th>
-					<th>Term</th>
-					<th>Value</th>
-					<th>Action</th>
-				</tr>
-			</thead>
-			<tbody>
-				<tr th:each="curvePoint : ${curvePoints}">
-					<td style="width: 10%" th:text="${curvePoint.id}"></td>
-					<td th:text="${curvePoint.id}"></td>
-					<td th:text="${curvePoint.term}"></td>
-					<td th:text="${curvePoint.value}"></td>
-					<td style="width: 15%" class="text-center">
-						<a th:href="@{/curvePoint/update/{id}(id=${curvePoint.id})}">Edit</a>&nbsp;|&nbsp;
-						<a th:href="@{/curvePoint/delete/{id}(id=${curvePoint.id})}">Delete</a>
-					</td>
-				</tr>
-			</tbody>
-		</table>
+		<div class="col-12">
+			<h2>Curve Point List</h2>
+		</div>
+	</div>
+	
+	<div class="row">
+		<div class="col-12">
+			<a href="/curvePoint/add" class="btn btn-primary btn-sm mb-3">Add New Curve Point</a>
+			
+			<!-- Vérification sécurisée de l'existence des données -->
+			<div th:if="${curvePoints != null and not #lists.isEmpty(curvePoints)}">
+				<table class="table table-bordered table-striped table-hover">
+					<thead class="thead-dark">
+						<tr>
+							<th style="width: 10%">ID</th>
+							<th>Curve ID</th>
+							<th>Term</th>
+							<th>Value</th>
+							<th>Creation Date</th>
+							<th style="width: 20%" class="table-actions">Actions</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr th:each="curvePoint : ${curvePoints}">
+							<td th:text="${curvePoint.id}">N/A</td>
+							<td th:text="${curvePoint.curveId}">N/A</td>
+							<!-- Formatage sécurisé des nombres -->
+							<td th:text="${curvePoint.term != null ? #numbers.formatDecimal(curvePoint.term, 1, 4) : 'N/A'}">N/A</td>
+							<td th:text="${curvePoint.value != null ? #numbers.formatDecimal(curvePoint.value, 1, 4) : 'N/A'}">N/A</td>
+							<!-- Formatage sécurisé des dates avec Timestamp -->
+							<td th:text="${curvePoint.creationDate != null ? #dates.format(curvePoint.creationDate, 'dd/MM/yyyy HH:mm') : 'N/A'}">N/A</td>
+							<td class="table-actions text-center">
+								<a th:href="@{/curvePoint/update/{id}(id=${curvePoint.id})}" 
+								   class="btn btn-warning btn-sm" 
+								   title="Edit this curve point">
+									Edit
+								</a>
+								&nbsp;
+								<a th:href="@{/curvePoint/delete/{id}(id=${curvePoint.id})}" 
+								   class="btn btn-danger btn-sm" 
+								   title="Delete this curve point"
+								   onclick="return confirm('Are you sure you want to delete this curve point?')">
+									Delete
+								</a>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			
+			<!-- Message quand aucune donnée -->
+			<div th:if="${curvePoints == null or #lists.isEmpty(curvePoints)}" class="alert alert-info">
+				<h4>No curve points found</h4>
+				<p>There are currently no curve points in the system. <a href="/curvePoint/add" class="btn btn-sm btn-primary">Create one now</a>.</p>
+			</div>
+		</div>
 	</div>
 </div>
+
+<!-- Bootstrap JS pour les alertes -->
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+
 </body>
 </html>

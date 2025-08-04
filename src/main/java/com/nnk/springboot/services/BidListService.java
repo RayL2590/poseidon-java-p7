@@ -10,18 +10,29 @@ import java.sql.Timestamp;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Implémentation du service de gestion des BidList
+ * Respecte les principes SOLID :
+ * - SRP : Gestion uniquement des BidList
+ * - OCP : Extensible via l'interface
+ * - LSP : Respecte le contrat défini par IBidListService
+ * - ISP : Interface spécialisée
+ * - DIP : Dépend de l'abstraction BidListRepository
+ */
 @Service
 @Transactional
-public class BidListService {
+public class BidListService implements IBidListService {
 
     @Autowired
     private BidListRepository bidListRepository;
 
+    @Override
     @Transactional(readOnly = true)
     public List<BidList> findAll() {
         return bidListRepository.findAll();
     }
 
+    @Override
     @Transactional(readOnly = true)
     public Optional<BidList> findById(Integer id) {
         if (id == null || id <= 0) {
@@ -30,6 +41,7 @@ public class BidListService {
         return bidListRepository.findById(id);
     }
 
+    @Override
     @Transactional(readOnly = true)
     public boolean existsById(Integer id) {
         if (id == null || id <= 0) {
@@ -38,6 +50,7 @@ public class BidListService {
         return bidListRepository.existsById(id);
     }
 
+    @Override
     public BidList save(BidList bidList) {
         validateBidList(bidList);
         
@@ -51,6 +64,7 @@ public class BidListService {
         return bidListRepository.save(bidList);
     }
 
+    @Override
     public void deleteById(Integer id) {
         if (id == null || id <= 0) {
             throw new IllegalArgumentException("Invalid ID for deletion");
@@ -63,6 +77,9 @@ public class BidListService {
         bidListRepository.deleteById(id);
     }
 
+    /**
+     * Méthode privée de validation - logique interne au service
+     */
     private void validateBidList(BidList bidList) {
         if (bidList == null) {
             throw new IllegalArgumentException("BidList cannot be null");

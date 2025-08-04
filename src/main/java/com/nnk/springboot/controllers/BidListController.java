@@ -4,7 +4,7 @@ package com.nnk.springboot.controllers;
 import com.nnk.springboot.domain.BidList;
 import com.nnk.springboot.dto.BidListDTO;
 import com.nnk.springboot.mapper.BidListMapper;
-import com.nnk.springboot.services.BidListService;
+import com.nnk.springboot.services.IBidListService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -24,7 +24,7 @@ public class BidListController {
     private static final Logger logger = LoggerFactory.getLogger(BidListController.class);
 
     @Autowired
-    private BidListService bidListService;
+    private IBidListService bidListService;
 
     @GetMapping("/list")
     public String home(Model model, 
