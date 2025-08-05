@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -56,10 +56,10 @@ public class CurvePointService implements ICurvePointService {
         
         // Ajout automatique des dates
         if (curvePoint.getId() == null) {
-            curvePoint.setCreationDate(new Timestamp(System.currentTimeMillis()));
+            curvePoint.setCreationDate(LocalDateTime.now());
             // Pour un nouveau point, asOfDate par défaut = maintenant si non spécifié
             if (curvePoint.getAsOfDate() == null) {
-                curvePoint.setAsOfDate(new Timestamp(System.currentTimeMillis()));
+                curvePoint.setAsOfDate(LocalDateTime.now());
             }
         }
         

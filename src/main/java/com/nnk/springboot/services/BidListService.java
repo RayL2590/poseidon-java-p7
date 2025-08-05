@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -56,9 +56,9 @@ public class BidListService implements IBidListService {
         
         // Ajout automatique des dates
         if (bidList.getBidListId() == null) {
-            bidList.setCreationDate(new Timestamp(System.currentTimeMillis()));
+            bidList.setCreationDate(LocalDateTime.now());
         } else {
-            bidList.setRevisionDate(new Timestamp(System.currentTimeMillis()));
+            bidList.setRevisionDate(LocalDateTime.now());
         }
         
         return bidListRepository.save(bidList);

@@ -17,28 +17,54 @@ import jakarta.validation.Valid;
 import java.util.List;
 
 /**
- * Contrôleur pour la gestion des points de courbe financière
- * Respecte les principes SOLID :
- * - SRP : Gestion uniquement de l'interface web pour CurvePoint
- * - OCP : Extensible pour nouvelles fonctionnalités
- * - LSP : Respect du contrat Controller
- * - ISP : Interface spécialisée pour les opérations CurvePoint
- * - DIP : Dépend d'abstractions (Service, Mapper)
+ * Contrôleur Spring MVC pour la gestion des points de courbe financière (CurvePoint).
+ * 
+ * <p>Ce contrôleur gère l'ensemble des opérations CRUD (Create, Read, Update, Delete)
+ * pour les entités CurvePoint via une interface web. Il utilise le pattern DTO pour
+ * la conversion des données entre les couches de présentation et de service.</p>
+ * 
+ * <p>Architecture respectant les principes SOLID :</p>
+ * <ul>
+ *   <li><strong>SRP</strong> : Gestion uniquement de l'interface web pour CurvePoint</li>
+ *   <li><strong>OCP</strong> : Extensible pour nouvelles fonctionnalités</li>
+ *   <li><strong>LSP</strong> : Respect du contrat Controller Spring</li>
+ *   <li><strong>ISP</strong> : Interface spécialisée pour les opérations CurvePoint</li>
+ *   <li><strong>DIP</strong> : Dépend d'abstractions (Service, Mapper)</li>
+ * </ul>
+ * 
+ * <p>Toutes les méthodes incluent une gestion d'erreurs robuste et un logging approprié
+ * pour faciliter le débogage et la maintenance.</p>
+ * 
+ * @author Poseidon Trading App
+ * @version 1.0
+ * @since 1.0
  */
 @Controller
 @RequestMapping("/curvePoint")
 public class CurveController {
     
+    /** Logger pour tracer les opérations et erreurs du contrôleur */
     private static final Logger logger = LoggerFactory.getLogger(CurveController.class);
 
+    /** Service de gestion des CurvePoint injecté par Spring */
     @Autowired
     private ICurvePointService curvePointService;
 
+    /** Mapper pour la conversion entre entités et DTOs injecté par Spring */
     @Autowired
     private CurvePointMapper curvePointMapper;
 
     /**
-     * Affiche la liste de tous les points de courbe
+     * Affiche la liste de tous les points de courbe financière.
+     * 
+     * <p>Cette méthode récupère toutes les entités CurvePoint depuis le service
+     * et gère les messages de statut (succès/erreur) transmis via les paramètres
+     * de requête lors des redirections.</p>
+     * 
+     * @param model Le modèle Spring MVC pour passer les données à la vue
+     * @param success Paramètre optionnel contenant le message de succès à afficher
+     * @param error Paramètre optionnel contenant le message d'erreur à afficher
+     * @return Le nom de la vue Thymeleaf "curvePoint/list"
      */
     @GetMapping("/list")
     public String home(Model model, 
@@ -62,7 +88,13 @@ public class CurveController {
     }
 
     /**
-     * Affiche le formulaire d'ajout d'un nouveau point de courbe
+     * Affiche le formulaire de création d'un nouveau point de courbe.
+     * 
+     * <p>Cette méthode prépare un DTO vide qui sera utilisé pour lier
+     * les données du formulaire de création d'un nouveau CurvePoint.</p>
+     * 
+     * @param model Le modèle Spring MVC pour passer les données à la vue
+     * @return Le nom de la vue Thymeleaf "curvePoint/add"
      */
     @GetMapping("/add")
     public String addCurvePointForm(Model model) {
@@ -71,7 +103,18 @@ public class CurveController {
     }
 
     /**
-     * Traite la soumission du formulaire de création
+     * Traite la soumission du formulaire de création d'un point de courbe.
+     * 
+     * <p>Cette méthode valide les données soumises via Bean Validation, les convertit
+     * de DTO vers entité via le mapper, les sauvegarde via le service et redirige
+     * vers la liste avec un message de succès. En cas d'erreur de validation ou
+     * d'exception métier, elle retourne au formulaire avec un message d'erreur approprié.</p>
+     * 
+     * @param curvePointDTO Les données du CurvePoint à créer, validées avec Bean Validation
+     * @param result Le résultat de la validation Bean Validation
+     * @param model Le modèle Spring MVC pour passer les données à la vue
+     * @param redirectAttributes Attributs pour la redirection (messages de succès/erreur)
+     * @return Redirection vers la liste en cas de succès, ou retour au formulaire en cas d'erreur
      */
     @PostMapping("/validate")
     public String validate(@Valid @ModelAttribute("curvePointDTO") CurvePointDTO curvePointDTO, 
@@ -107,7 +150,16 @@ public class CurveController {
     }
 
     /**
-     * Affiche le formulaire de modification d'un point de courbe
+     * Affiche le formulaire de modification d'un point de courbe existant.
+     * 
+     * <p>Cette méthode récupère un CurvePoint par son ID depuis le service,
+     * le convertit en DTO via le mapper et le passe au formulaire de modification.
+     * Elle inclut une validation de l'existence de l'entité et une gestion
+     * d'erreurs robuste.</p>
+     * 
+     * @param id L'identifiant du CurvePoint à modifier
+     * @param model Le modèle Spring MVC pour passer les données à la vue
+     * @return Le nom de la vue "curvePoint/update" ou redirection vers la liste en cas d'erreur
      */
     @GetMapping("/update/{id}")
     public String showUpdateForm(@PathVariable("id") Integer id, Model model) {
@@ -136,7 +188,19 @@ public class CurveController {
     }
 
     /**
-     * Traite la soumission du formulaire de modification
+     * Traite la soumission du formulaire de modification d'un point de courbe.
+     * 
+     * <p>Cette méthode valide les données modifiées, vérifie l'existence de l'entité,
+     * met à jour l'entité existante via le mapper, effectue la sauvegarde via le service
+     * et redirige vers la liste avec un message de succès. En cas d'erreur, elle retourne
+     * au formulaire avec un message d'erreur et préserve l'ID dans le DTO.</p>
+     * 
+     * @param id L'identifiant du CurvePoint à modifier
+     * @param curvePointDTO Les données modifiées du CurvePoint, validées avec Bean Validation
+     * @param result Le résultat de la validation Bean Validation
+     * @param model Le modèle Spring MVC pour passer les données à la vue
+     * @param redirectAttributes Attributs pour la redirection (messages de succès/erreur)
+     * @return Redirection vers la liste en cas de succès, ou retour au formulaire en cas d'erreur
      */
     @PostMapping("/update/{id}")
     public String updateCurvePoint(@PathVariable("id") Integer id, 
@@ -178,7 +242,16 @@ public class CurveController {
     }
 
     /**
-     * Supprime un point de courbe
+     * Supprime un point de courbe par son identifiant.
+     * 
+     * <p>Cette méthode effectue la suppression d'un CurvePoint via le service
+     * et redirige vers la liste avec un message de succès ou d'erreur selon
+     * le résultat de l'opération. La gestion d'erreurs inclut les cas de
+     * validation métier et les erreurs techniques.</p>
+     * 
+     * @param id L'identifiant du CurvePoint à supprimer
+     * @param redirectAttributes Attributs pour la redirection (messages de succès/erreur)
+     * @return Redirection vers la liste avec un message de statut approprié
      */
     @GetMapping("/delete/{id}")
     public String deleteCurvePoint(@PathVariable("id") Integer id, 
@@ -204,7 +277,16 @@ public class CurveController {
     }
     
     /**
-     * Gestionnaire d'exception global pour ce contrôleur
+     * Gestionnaire d'exceptions global pour ce contrôleur.
+     * 
+     * <p>Cette méthode capture toutes les exceptions non gérées spécifiquement
+     * dans les autres méthodes du contrôleur. Elle retourne une vue d'erreur
+     * avec un message approprié et une liste vide pour éviter les erreurs
+     * d'affichage dans la vue.</p>
+     * 
+     * @param e L'exception capturée
+     * @param model Le modèle Spring MVC pour passer les données à la vue
+     * @return Le nom de la vue "curvePoint/list" avec un message d'erreur
      */
     @ExceptionHandler(Exception.class)
     public String handleGenericException(Exception e, Model model) {
@@ -215,7 +297,16 @@ public class CurveController {
     }
     
     /**
-     * Ajoute les messages de statut au modèle
+     * Méthode utilitaire pour ajouter les messages de statut au modèle.
+     * 
+     * <p>Cette méthode privée centralise la logique d'ajout des messages
+     * de succès et d'erreur au modèle en fonction des paramètres reçus
+     * lors des redirections. Elle vérifie que les messages ne sont pas
+     * null ou vides avant de les ajouter au modèle.</p>
+     * 
+     * @param model Le modèle Spring MVC auquel ajouter les messages
+     * @param success Le message de succès à afficher (peut être null)
+     * @param error Le message d'erreur à afficher (peut être null)
      */
     private void addStatusMessages(Model model, String success, String error) {
         if (success != null && !success.trim().isEmpty()) {

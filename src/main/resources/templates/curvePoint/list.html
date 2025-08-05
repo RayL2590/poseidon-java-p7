@@ -78,8 +78,8 @@
 							<!-- Formatage sécurisé des nombres -->
 							<td th:text="${curvePoint.term != null ? #numbers.formatDecimal(curvePoint.term, 1, 4) : 'N/A'}">N/A</td>
 							<td th:text="${curvePoint.value != null ? #numbers.formatDecimal(curvePoint.value, 1, 4) : 'N/A'}">N/A</td>
-							<!-- Formatage sécurisé des dates avec Timestamp -->
-							<td th:text="${curvePoint.creationDate != null ? #dates.format(curvePoint.creationDate, 'dd/MM/yyyy HH:mm') : 'N/A'}">N/A</td>
+							<!-- Formatage avec #temporals pour LocalDateTime -->
+							<td th:text="${curvePoint.creationDate != null ? #temporals.format(curvePoint.creationDate, 'dd/MM/yyyy HH:mm') : 'N/A'}">N/A</td>
 							<td class="table-actions text-center">
 								<a th:href="@{/curvePoint/update/{id}(id=${curvePoint.id})}" 
 								   class="btn btn-warning btn-sm" 

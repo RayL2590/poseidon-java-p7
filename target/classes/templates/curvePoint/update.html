@@ -9,24 +9,12 @@
 <body>
 <div class="container">
 	<div class="row">
-		<h2>Update Curve Point</h2>
+		<h2>Update CurvePoint</h2>
 	</div>
 
-	<!-- Messages de succès -->
-	<div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
-		<strong>Success!</strong> <span th:text="${successMessage}"></span>
-		<button type="button" class="close" data-dismiss="alert" aria-label="Close">
-			<span aria-hidden="true">&times;</span>
-		</button>
-	</div>
-	
-	<!-- Messages d'erreur -->
-	<div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
-		<strong>Error!</strong> <span th:text="${errorMessage}"></span>
-		<button type="button" class="close" data-dismiss="alert" aria-label="Close">
-			<span aria-hidden="true">&times;</span>
-		</button>
-	</div>
+	<!-- Messages de statut -->
+	<div th:if="${successMessage}" class="alert alert-success" role="alert" th:text="${successMessage}"></div>
+	<div th:if="${errorMessage}" class="alert alert-danger" role="alert" th:text="${errorMessage}"></div>
 
 	<div class="row">
 		<form action="#" th:action="@{/curvePoint/update/{id}(id=${curvePointDTO.id})}" th:object="${curvePointDTO}" method="post" class="form-horizontal" style="width: 100%">
@@ -61,12 +49,7 @@
 			</div>
 		</form>
 	</div>
+
 </div>
-
-<!-- Bootstrap JS pour les alertes -->
-<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
-
 </body>
 </html>
