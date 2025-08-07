@@ -41,10 +41,10 @@ import java.util.List;
  */
 @Controller
 @RequestMapping("/curvePoint")
-public class CurveController {
+public class CurvePointController {
     
     /** Logger pour tracer les opérations et erreurs du contrôleur */
-    private static final Logger logger = LoggerFactory.getLogger(CurveController.class);
+    private static final Logger logger = LoggerFactory.getLogger(CurvePointController.class);
 
     /** Service de gestion des CurvePoint injecté par Spring */
     @Autowired

@@ -10,7 +10,6 @@ C:\Users\Mayar\Documents\DevRyan\poseidon-java-p7\src\main\java\com\nnk\springbo
 C:\Users\Mayar\Documents\DevRyan\poseidon-java-p7\src\main\java\com\nnk\springboot\services\ICurvePointService.java
 C:\Users\Mayar\Documents\DevRyan\poseidon-java-p7\src\main\java\com\nnk\springboot\Application.java
 C:\Users\Mayar\Documents\DevRyan\poseidon-java-p7\src\main\java\com\nnk\springboot\controllers\RuleNameController.java
-C:\Users\Mayar\Documents\DevRyan\poseidon-java-p7\src\main\java\com\nnk\springboot\util\PasswordHashGenerator.java
 C:\Users\Mayar\Documents\DevRyan\poseidon-java-p7\src\main\java\com\nnk\springboot\services\BidListService.java
 C:\Users\Mayar\Documents\DevRyan\poseidon-java-p7\src\main\java\com\nnk\springboot\controllers\UserController.java
 C:\Users\Mayar\Documents\DevRyan\poseidon-java-p7\src\main\java\com\nnk\springboot\repositories\BidListRepository.java
@@ -27,6 +26,7 @@ C:\Users\Mayar\Documents\DevRyan\poseidon-java-p7\src\main\java\com\nnk\springbo
 C:\Users\Mayar\Documents\DevRyan\poseidon-java-p7\src\main\java\com\nnk\springboot\domain\User.java
 C:\Users\Mayar\Documents\DevRyan\poseidon-java-p7\src\main\java\com\nnk\springboot\repositories\RatingRepository.java
 C:\Users\Mayar\Documents\DevRyan\poseidon-java-p7\src\main\java\com\nnk\springboot\mapper\BidListMapper.java
+C:\Users\Mayar\Documents\DevRyan\poseidon-java-p7\src\main\java\com\nnk\springboot\config\CustomUserDetailsService.java
 C:\Users\Mayar\Documents\DevRyan\poseidon-java-p7\src\main\java\com\nnk\springboot\controllers\TradeController.java
 C:\Users\Mayar\Documents\DevRyan\poseidon-java-p7\src\main\java\com\nnk\springboot\domain\Trade.java
 C:\Users\Mayar\Documents\DevRyan\poseidon-java-p7\src\main\java\com\nnk\springboot\mapper\CurvePointMapper.java
