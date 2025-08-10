@@ -1,0 +1,320 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="fr"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CurvePointController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spring-boot-skeleton</a> &gt; <a href="index.source.html" class="el_package">com.nnk.springboot.controllers</a> &gt; <span class="el_source">CurvePointController.java</span></div><h1>CurvePointController.java</h1><pre class="source lang-java linenums">package com.nnk.springboot.controllers;
+
+import com.nnk.springboot.domain.CurvePoint;
+import com.nnk.springboot.dto.CurvePointDTO;
+import com.nnk.springboot.mapper.CurvePointMapper;
+import com.nnk.springboot.services.ICurvePointService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import jakarta.validation.Valid;
+
+import java.util.List;
+
+/**
+ * Contrôleur Spring MVC pour la gestion des points de courbe financière (CurvePoint).
+ * 
+ * &lt;p&gt;Ce contrôleur gère l'ensemble des opérations CRUD (Create, Read, Update, Delete)
+ * pour les entités CurvePoint via une interface web. Il utilise le pattern DTO pour
+ * la conversion des données entre les couches de présentation et de service.&lt;/p&gt;
+ * 
+ * &lt;p&gt;Architecture respectant les principes SOLID :&lt;/p&gt;
+ * &lt;ul&gt;
+ *   &lt;li&gt;&lt;strong&gt;SRP&lt;/strong&gt; : Gestion uniquement de l'interface web pour CurvePoint&lt;/li&gt;
+ *   &lt;li&gt;&lt;strong&gt;OCP&lt;/strong&gt; : Extensible pour nouvelles fonctionnalités&lt;/li&gt;
+ *   &lt;li&gt;&lt;strong&gt;LSP&lt;/strong&gt; : Respect du contrat Controller Spring&lt;/li&gt;
+ *   &lt;li&gt;&lt;strong&gt;ISP&lt;/strong&gt; : Interface spécialisée pour les opérations CurvePoint&lt;/li&gt;
+ *   &lt;li&gt;&lt;strong&gt;DIP&lt;/strong&gt; : Dépend d'abstractions (Service, Mapper)&lt;/li&gt;
+ * &lt;/ul&gt;
+ * 
+ * &lt;p&gt;Toutes les méthodes incluent une gestion d'erreurs robuste et un logging approprié
+ * pour faciliter le débogage et la maintenance.&lt;/p&gt;
+ * 
+ * @author Poseidon Trading App
+ * @version 1.0
+ * @since 1.0
+ */
+@Controller
+@RequestMapping(&quot;/curvePoint&quot;)
+<span class="fc" id="L44">public class CurvePointController {</span>
+    
+    /** Logger pour tracer les opérations et erreurs du contrôleur */
+<span class="fc" id="L47">    private static final Logger logger = LoggerFactory.getLogger(CurvePointController.class);</span>
+
+    /** Service de gestion des CurvePoint injecté par Spring */
+    @Autowired
+    private ICurvePointService curvePointService;
+
+    /** Mapper pour la conversion entre entités et DTOs injecté par Spring */
+    @Autowired
+    private CurvePointMapper curvePointMapper;
+
+    /**
+     * Affiche la liste de tous les points de courbe financière.
+     * 
+     * &lt;p&gt;Cette méthode récupère toutes les entités CurvePoint depuis le service
+     * et gère les messages de statut (succès/erreur) transmis via les paramètres
+     * de requête lors des redirections.&lt;/p&gt;
+     * 
+     * @param model Le modèle Spring MVC pour passer les données à la vue
+     * @param success Paramètre optionnel contenant le message de succès à afficher
+     * @param error Paramètre optionnel contenant le message d'erreur à afficher
+     * @return Le nom de la vue Thymeleaf &quot;curvePoint/list&quot;
+     */
+    @GetMapping(&quot;/list&quot;)
+    public String home(Model model, 
+                      @RequestParam(value = &quot;success&quot;, required = false) String success,
+                      @RequestParam(value = &quot;error&quot;, required = false) String error) {
+        try {
+<span class="fc" id="L74">            List&lt;CurvePoint&gt; curvePoints = curvePointService.findAll();</span>
+<span class="fc" id="L75">            model.addAttribute(&quot;curvePoints&quot;, curvePoints);</span>
+            
+<span class="fc" id="L77">            addStatusMessages(model, success, error);</span>
+            
+<span class="fc" id="L79">            logger.info(&quot;Successfully loaded {} curve points&quot;, curvePoints.size());</span>
+<span class="fc" id="L80">            return &quot;curvePoint/list&quot;;</span>
+            
+<span class="fc" id="L82">        } catch (Exception e) {</span>
+<span class="fc" id="L83">            logger.error(&quot;Error loading curve points list&quot;, e);</span>
+<span class="fc" id="L84">            model.addAttribute(&quot;errorMessage&quot;, &quot;Error loading curve points: &quot; + e.getMessage());</span>
+<span class="fc" id="L85">            model.addAttribute(&quot;curvePoints&quot;, List.of()); // Liste vide en cas d'erreur</span>
+<span class="fc" id="L86">            return &quot;curvePoint/list&quot;;</span>
+        }
+    }
+
+    /**
+     * Affiche le formulaire de création d'un nouveau point de courbe.
+     * 
+     * &lt;p&gt;Cette méthode prépare un DTO vide qui sera utilisé pour lier
+     * les données du formulaire de création d'un nouveau CurvePoint.&lt;/p&gt;
+     * 
+     * @param model Le modèle Spring MVC pour passer les données à la vue
+     * @return Le nom de la vue Thymeleaf &quot;curvePoint/add&quot;
+     */
+    @GetMapping(&quot;/add&quot;)
+    public String addCurvePointForm(Model model) {
+<span class="fc" id="L101">        model.addAttribute(&quot;curvePointDTO&quot;, new CurvePointDTO());</span>
+<span class="fc" id="L102">        return &quot;curvePoint/add&quot;;</span>
+    }
+
+    /**
+     * Traite la soumission du formulaire de création d'un point de courbe.
+     * 
+     * &lt;p&gt;Cette méthode valide les données soumises via Bean Validation, les convertit
+     * de DTO vers entité via le mapper, les sauvegarde via le service et redirige
+     * vers la liste avec un message de succès. En cas d'erreur de validation ou
+     * d'exception métier, elle retourne au formulaire avec un message d'erreur approprié.&lt;/p&gt;
+     * 
+     * @param curvePointDTO Les données du CurvePoint à créer, validées avec Bean Validation
+     * @param result Le résultat de la validation Bean Validation
+     * @param model Le modèle Spring MVC pour passer les données à la vue
+     * @param redirectAttributes Attributs pour la redirection (messages de succès/erreur)
+     * @return Redirection vers la liste en cas de succès, ou retour au formulaire en cas d'erreur
+     */
+    @PostMapping(&quot;/validate&quot;)
+    public String validate(@Valid @ModelAttribute(&quot;curvePointDTO&quot;) CurvePointDTO curvePointDTO, 
+                          BindingResult result, 
+                          Model model,
+                          RedirectAttributes redirectAttributes) {
+<span class="fc" id="L124">        logger.info(&quot;Attempting to create new CurvePoint: curveId={}, term={}, value={}&quot;, </span>
+<span class="fc" id="L125">                   curvePointDTO.getCurveId(), curvePointDTO.getTerm(), curvePointDTO.getValue());</span>
+        
+<span class="fc bfc" id="L127" title="All 2 branches covered.">        if (result.hasErrors()) {</span>
+<span class="fc" id="L128">            logger.warn(&quot;Validation errors found for new CurvePoint&quot;);</span>
+<span class="fc" id="L129">            return &quot;curvePoint/add&quot;;</span>
+        }
+        
+        try {
+<span class="fc" id="L133">            CurvePoint curvePoint = curvePointMapper.toEntity(curvePointDTO);</span>
+<span class="fc" id="L134">            CurvePoint savedCurvePoint = curvePointService.save(curvePoint);</span>
+            
+<span class="fc" id="L136">            logger.info(&quot;Successfully created CurvePoint with ID: {}&quot;, savedCurvePoint.getId());</span>
+<span class="fc" id="L137">            redirectAttributes.addAttribute(&quot;success&quot;, &quot;Curve Point added successfully&quot;);</span>
+<span class="fc" id="L138">            return &quot;redirect:/curvePoint/list&quot;;</span>
+            
+<span class="fc" id="L140">        } catch (IllegalArgumentException e) {</span>
+<span class="fc" id="L141">            logger.warn(&quot;Business validation error for new CurvePoint: {}&quot;, e.getMessage());</span>
+<span class="fc" id="L142">            model.addAttribute(&quot;errorMessage&quot;, e.getMessage());</span>
+<span class="fc" id="L143">            return &quot;curvePoint/add&quot;;</span>
+            
+<span class="nc" id="L145">        } catch (Exception e) {</span>
+<span class="nc" id="L146">            logger.error(&quot;Unexpected error creating CurvePoint&quot;, e);</span>
+<span class="nc" id="L147">            model.addAttribute(&quot;errorMessage&quot;, &quot;An unexpected error occurred: &quot; + e.getMessage());</span>
+<span class="nc" id="L148">            return &quot;curvePoint/add&quot;;</span>
+        }
+    }
+
+    /**
+     * Affiche le formulaire de modification d'un point de courbe existant.
+     * 
+     * &lt;p&gt;Cette méthode récupère un CurvePoint par son ID depuis le service,
+     * le convertit en DTO via le mapper et le passe au formulaire de modification.
+     * Elle inclut une validation de l'existence de l'entité et une gestion
+     * d'erreurs robuste.&lt;/p&gt;
+     * 
+     * @param id L'identifiant du CurvePoint à modifier
+     * @param model Le modèle Spring MVC pour passer les données à la vue
+     * @return Le nom de la vue &quot;curvePoint/update&quot; ou redirection vers la liste en cas d'erreur
+     */
+    @GetMapping(&quot;/update/{id}&quot;)
+    public String showUpdateForm(@PathVariable(&quot;id&quot;) Integer id, Model model) {
+<span class="fc" id="L166">        logger.info(&quot;Attempting to load CurvePoint for update: ID={}&quot;, id);</span>
+        
+        try {
+<span class="fc" id="L169">            CurvePoint curvePoint = curvePointService.findById(id)</span>
+<span class="fc" id="L170">                .orElseThrow(() -&gt; new IllegalArgumentException(&quot;CurvePoint not found with id: &quot; + id));</span>
+            
+<span class="fc" id="L172">            CurvePointDTO curvePointDTO = curvePointMapper.toDTO(curvePoint);</span>
+<span class="fc" id="L173">            model.addAttribute(&quot;curvePointDTO&quot;, curvePointDTO);</span>
+            
+<span class="fc" id="L175">            logger.info(&quot;Successfully loaded CurvePoint for update: ID={}&quot;, id);</span>
+<span class="fc" id="L176">            return &quot;curvePoint/update&quot;;</span>
+            
+<span class="fc" id="L178">        } catch (IllegalArgumentException e) {</span>
+<span class="fc" id="L179">            logger.warn(&quot;CurvePoint not found for update: ID={}&quot;, id);</span>
+<span class="fc" id="L180">            model.addAttribute(&quot;errorMessage&quot;, e.getMessage());</span>
+<span class="fc" id="L181">            return &quot;redirect:/curvePoint/list&quot;;</span>
+            
+<span class="fc" id="L183">        } catch (Exception e) {</span>
+<span class="fc" id="L184">            logger.error(&quot;Error loading CurvePoint for update: ID={}&quot;, id, e);</span>
+<span class="fc" id="L185">            model.addAttribute(&quot;errorMessage&quot;, &quot;Error loading curve point: &quot; + e.getMessage());</span>
+<span class="fc" id="L186">            return &quot;redirect:/curvePoint/list&quot;;</span>
+        }
+    }
+
+    /**
+     * Traite la soumission du formulaire de modification d'un point de courbe.
+     * 
+     * &lt;p&gt;Cette méthode valide les données modifiées, vérifie l'existence de l'entité,
+     * met à jour l'entité existante via le mapper, effectue la sauvegarde via le service
+     * et redirige vers la liste avec un message de succès. En cas d'erreur, elle retourne
+     * au formulaire avec un message d'erreur et préserve l'ID dans le DTO.&lt;/p&gt;
+     * 
+     * @param id L'identifiant du CurvePoint à modifier
+     * @param curvePointDTO Les données modifiées du CurvePoint, validées avec Bean Validation
+     * @param result Le résultat de la validation Bean Validation
+     * @param model Le modèle Spring MVC pour passer les données à la vue
+     * @param redirectAttributes Attributs pour la redirection (messages de succès/erreur)
+     * @return Redirection vers la liste en cas de succès, ou retour au formulaire en cas d'erreur
+     */
+    @PostMapping(&quot;/update/{id}&quot;)
+    public String updateCurvePoint(@PathVariable(&quot;id&quot;) Integer id, 
+                                  @Valid @ModelAttribute(&quot;curvePointDTO&quot;) CurvePointDTO curvePointDTO,
+                                  BindingResult result,
+                                  Model model,
+                                  RedirectAttributes redirectAttributes) {
+<span class="fc" id="L211">        logger.info(&quot;Attempting to update CurvePoint: ID={}&quot;, id);</span>
+        
+<span class="fc bfc" id="L213" title="All 2 branches covered.">        if (result.hasErrors()) {</span>
+<span class="fc" id="L214">            logger.warn(&quot;Validation errors found for CurvePoint update: ID={}&quot;, id);</span>
+<span class="fc" id="L215">            curvePointDTO.setId(id); // Préserver l'ID pour le formulaire</span>
+<span class="fc" id="L216">            return &quot;curvePoint/update&quot;;</span>
+        }
+        
+        try {
+<span class="fc" id="L220">            CurvePoint existingCurvePoint = curvePointService.findById(id)</span>
+<span class="fc" id="L221">                .orElseThrow(() -&gt; new IllegalArgumentException(&quot;CurvePoint not found with id: &quot; + id));</span>
+            
+<span class="fc" id="L223">            curvePointMapper.updateEntityFromDTO(existingCurvePoint, curvePointDTO);</span>
+<span class="fc" id="L224">            curvePointService.save(existingCurvePoint);</span>
+            
+<span class="fc" id="L226">            logger.info(&quot;Successfully updated CurvePoint: ID={}&quot;, id);</span>
+<span class="fc" id="L227">            redirectAttributes.addAttribute(&quot;success&quot;, &quot;Curve Point updated successfully&quot;);</span>
+<span class="fc" id="L228">            return &quot;redirect:/curvePoint/list&quot;;</span>
+            
+<span class="fc" id="L230">        } catch (IllegalArgumentException e) {</span>
+<span class="fc" id="L231">            logger.warn(&quot;Business validation error for CurvePoint update: ID={}, error={}&quot;, id, e.getMessage());</span>
+<span class="fc" id="L232">            model.addAttribute(&quot;errorMessage&quot;, e.getMessage());</span>
+<span class="fc" id="L233">            curvePointDTO.setId(id);</span>
+<span class="fc" id="L234">            return &quot;curvePoint/update&quot;;</span>
+            
+<span class="fc" id="L236">        } catch (Exception e) {</span>
+<span class="fc" id="L237">            logger.error(&quot;Unexpected error updating CurvePoint: ID={}&quot;, id, e);</span>
+<span class="fc" id="L238">            model.addAttribute(&quot;errorMessage&quot;, &quot;An unexpected error occurred: &quot; + e.getMessage());</span>
+<span class="fc" id="L239">            curvePointDTO.setId(id);</span>
+<span class="fc" id="L240">            return &quot;curvePoint/update&quot;;</span>
+        }
+    }
+
+    /**
+     * Supprime un point de courbe par son identifiant.
+     * 
+     * &lt;p&gt;Cette méthode effectue la suppression d'un CurvePoint via le service
+     * et redirige vers la liste avec un message de succès ou d'erreur selon
+     * le résultat de l'opération. La gestion d'erreurs inclut les cas de
+     * validation métier et les erreurs techniques.&lt;/p&gt;
+     * 
+     * @param id L'identifiant du CurvePoint à supprimer
+     * @param redirectAttributes Attributs pour la redirection (messages de succès/erreur)
+     * @return Redirection vers la liste avec un message de statut approprié
+     */
+    @GetMapping(&quot;/delete/{id}&quot;)
+    public String deleteCurvePoint(@PathVariable(&quot;id&quot;) Integer id, 
+                                  RedirectAttributes redirectAttributes) {
+<span class="fc" id="L259">        logger.info(&quot;Attempting to delete CurvePoint: ID={}&quot;, id);</span>
+        
+        try {
+<span class="fc" id="L262">            curvePointService.deleteById(id);</span>
+            
+<span class="fc" id="L264">            logger.info(&quot;Successfully deleted CurvePoint: ID={}&quot;, id);</span>
+<span class="fc" id="L265">            redirectAttributes.addAttribute(&quot;success&quot;, &quot;Curve Point deleted successfully&quot;);</span>
+            
+<span class="fc" id="L267">        } catch (IllegalArgumentException e) {</span>
+<span class="fc" id="L268">            logger.warn(&quot;Cannot delete CurvePoint: ID={}, error={}&quot;, id, e.getMessage());</span>
+<span class="fc" id="L269">            redirectAttributes.addAttribute(&quot;error&quot;, e.getMessage());</span>
+            
+<span class="fc" id="L271">        } catch (Exception e) {</span>
+<span class="fc" id="L272">            logger.error(&quot;Unexpected error deleting CurvePoint: ID={}&quot;, id, e);</span>
+<span class="fc" id="L273">            redirectAttributes.addAttribute(&quot;error&quot;, &quot;An unexpected error occurred: &quot; + e.getMessage());</span>
+<span class="fc" id="L274">        }</span>
+        
+<span class="fc" id="L276">        return &quot;redirect:/curvePoint/list&quot;;</span>
+    }
+    
+    /**
+     * Gestionnaire d'exceptions global pour ce contrôleur.
+     * 
+     * &lt;p&gt;Cette méthode capture toutes les exceptions non gérées spécifiquement
+     * dans les autres méthodes du contrôleur. Elle retourne une vue d'erreur
+     * avec un message approprié et une liste vide pour éviter les erreurs
+     * d'affichage dans la vue.&lt;/p&gt;
+     * 
+     * @param e L'exception capturée
+     * @param model Le modèle Spring MVC pour passer les données à la vue
+     * @return Le nom de la vue &quot;curvePoint/list&quot; avec un message d'erreur
+     */
+    @ExceptionHandler(Exception.class)
+    public String handleGenericException(Exception e, Model model) {
+<span class="fc" id="L293">        logger.error(&quot;Unhandled exception in CurveController&quot;, e);</span>
+<span class="fc" id="L294">        model.addAttribute(&quot;errorMessage&quot;, &quot;An unexpected error occurred: &quot; + e.getMessage());</span>
+<span class="fc" id="L295">        model.addAttribute(&quot;curvePoints&quot;, List.of()); // Liste vide en cas d'erreur</span>
+<span class="fc" id="L296">        return &quot;curvePoint/list&quot;;</span>
+    }
+    
+    /**
+     * Méthode utilitaire pour ajouter les messages de statut au modèle.
+     * 
+     * &lt;p&gt;Cette méthode privée centralise la logique d'ajout des messages
+     * de succès et d'erreur au modèle en fonction des paramètres reçus
+     * lors des redirections. Elle vérifie que les messages ne sont pas
+     * null ou vides avant de les ajouter au modèle.&lt;/p&gt;
+     * 
+     * @param model Le modèle Spring MVC auquel ajouter les messages
+     * @param success Le message de succès à afficher (peut être null)
+     * @param error Le message d'erreur à afficher (peut être null)
+     */
+    private void addStatusMessages(Model model, String success, String error) {
+<span class="pc bpc" id="L312" title="1 of 4 branches missed.">        if (success != null &amp;&amp; !success.trim().isEmpty()) {</span>
+<span class="fc" id="L313">            model.addAttribute(&quot;successMessage&quot;, success);</span>
+        }
+<span class="pc bpc" id="L315" title="1 of 4 branches missed.">        if (error != null &amp;&amp; !error.trim().isEmpty()) {</span>
+<span class="fc" id="L316">            model.addAttribute(&quot;errorMessage&quot;, error);</span>
+        }
+<span class="fc" id="L318">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

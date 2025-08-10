@@ -14,33 +14,104 @@
 	</div>
 
 	<div class="row">
-		<form action="#" th:action="@{/rating/update/{id}(id=${rating.id})}" th:object="${rating}" method="post" class="form-horizontal" style="width: 100%">
+		<form action="#" th:action="@{/rating/update/{id}(id=${ratingDTO.id})}" th:object="${ratingDTO}" method="post" class="form-horizontal" style="width: 100%">
 			<div class="form-group">
 				<label for="moodysRating" class="col-sm-2 control-label">MoodysRating</label>
 				<div class="col-sm-10">
-					<input type="number" th:field="*{moodysRating}" id="moodysRating" placeholder="MoodysRating" class="col-4">
+					<select th:field="*{moodysRating}" id="moodysRating" class="col-4 form-control">
+						<option value="">-- Select Moody's Rating --</option>
+						<option value="Aaa">Aaa</option>
+						<option value="Aa1">Aa1</option>
+						<option value="Aa2">Aa2</option>
+						<option value="Aa3">Aa3</option>
+						<option value="A1">A1</option>
+						<option value="A2">A2</option>
+						<option value="A3">A3</option>
+						<option value="Baa1">Baa1</option>
+						<option value="Baa2">Baa2</option>
+						<option value="Baa3">Baa3</option>
+						<option value="Ba1">Ba1</option>
+						<option value="Ba2">Ba2</option>
+						<option value="Ba3">Ba3</option>
+						<option value="B1">B1</option>
+						<option value="B2">B2</option>
+						<option value="B3">B3</option>
+						<option value="Caa1">Caa1</option>
+						<option value="Caa2">Caa2</option>
+						<option value="Caa3">Caa3</option>
+						<option value="Ca">Ca</option>
+						<option value="C">C</option>
+					</select>
 					<p class="text-danger" th:if="${#fields.hasErrors('moodysRating')}" th:errors="*{moodysRating}"></p>
 				</div>
 			</div>
 			<div class="form-group">
-				<label for="sandPRating" class="col-sm-2 control-label">SandPRating</label>
+				<label for="sandPRating" class="col-sm-2 control-label">S&P Rating</label>
 				<div class="col-sm-10">
-					<input type="number" th:field="*{sandPRating}" id="sandPRating" placeholder="SandPRating" class="col-4">
+					<select th:field="*{sandPRating}" id="sandPRating" class="col-4 form-control">
+						<option value="">-- Select S&P Rating --</option>
+						<option value="AAA">AAA</option>
+						<option value="AA+">AA+</option>
+						<option value="AA">AA</option>
+						<option value="AA-">AA-</option>
+						<option value="A+">A+</option>
+						<option value="A">A</option>
+						<option value="A-">A-</option>
+						<option value="BBB+">BBB+</option>
+						<option value="BBB">BBB</option>
+						<option value="BBB-">BBB-</option>
+						<option value="BB+">BB+</option>
+						<option value="BB">BB</option>
+						<option value="BB-">BB-</option>
+						<option value="B+">B+</option>
+						<option value="B">B</option>
+						<option value="B-">B-</option>
+						<option value="CCC+">CCC+</option>
+						<option value="CCC">CCC</option>
+						<option value="CCC-">CCC-</option>
+						<option value="CC">CC</option>
+						<option value="C">C</option>
+						<option value="D">D</option>
+					</select>
 					<p class="text-danger" th:if="${#fields.hasErrors('sandPRating')}" th:errors="*{sandPRating}"></p>
 				</div>
 			</div>
 			<div class="form-group">
-				<label for="fitchRating" class="col-sm-2 control-label">FitchRating</label>
+				<label for="fitchRating" class="col-sm-2 control-label">Fitch Rating</label>
 				<div class="col-sm-10">
-					<input type="number" th:field="*{fitchRating}" id="fitchRating" placeholder="FitchRating" class="col-4">
+					<select th:field="*{fitchRating}" id="fitchRating" class="col-4 form-control">
+						<option value="">-- Select Fitch Rating --</option>
+						<option value="AAA">AAA</option>
+						<option value="AA+">AA+</option>
+						<option value="AA">AA</option>
+						<option value="AA-">AA-</option>
+						<option value="A+">A+</option>
+						<option value="A">A</option>
+						<option value="A-">A-</option>
+						<option value="BBB+">BBB+</option>
+						<option value="BBB">BBB</option>
+						<option value="BBB-">BBB-</option>
+						<option value="BB+">BB+</option>
+						<option value="BB">BB</option>
+						<option value="BB-">BB-</option>
+						<option value="B+">B+</option>
+						<option value="B">B</option>
+						<option value="B-">B-</option>
+						<option value="CCC+">CCC+</option>
+						<option value="CCC">CCC</option>
+						<option value="CCC-">CCC-</option>
+						<option value="CC">CC</option>
+						<option value="C">C</option>
+						<option value="D">D</option>
+					</select>
 					<p class="text-danger" th:if="${#fields.hasErrors('fitchRating')}" th:errors="*{fitchRating}"></p>
 				</div>
 			</div>
 			<div class="form-group">
-				<label for="order" class="col-sm-2 control-label">Order</label>
+				<label for="orderNumber" class="col-sm-2 control-label">Order</label>
 				<div class="col-sm-10">
-					<input type="text" th:field="*{order}" id="order" placeholder="FitchRating" class="col-4">
-					<p class="text-danger" th:if="${#fields.hasErrors('order')}" th:errors="*{order}"></p>
+					<input type="number" th:field="*{orderNumber}" id="orderNumber" placeholder="Order Number" class="col-4">
+					<p class="text-danger" th:if="${#fields.hasErrors('orderNumber')}" th:errors="*{orderNumber}"></p>
 				</div>
 			</div>
 

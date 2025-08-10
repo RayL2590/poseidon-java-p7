@@ -1,0 +1,333 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="fr"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BidListController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spring-boot-skeleton</a> &gt; <a href="index.source.html" class="el_package">com.nnk.springboot.controllers</a> &gt; <span class="el_source">BidListController.java</span></div><h1>BidListController.java</h1><pre class="source lang-java linenums">
+package com.nnk.springboot.controllers;
+
+import com.nnk.springboot.domain.BidList;
+import com.nnk.springboot.dto.BidListDTO;
+import com.nnk.springboot.mapper.BidListMapper;
+import com.nnk.springboot.services.IBidListService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import jakarta.validation.Valid;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+/**
+ * Contrôleur Spring MVC pour la gestion des entités BidList.
+ * 
+ * &lt;p&gt;Ce contrôleur gère l'ensemble des opérations CRUD (Create, Read, Update, Delete)
+ * pour les BidList via une interface web. Il utilise le pattern DTO pour la conversion
+ * des données entre les couches de présentation et de service.&lt;/p&gt;
+ * 
+ * &lt;p&gt;Toutes les méthodes incluent une gestion d'erreurs robuste et un logging approprié
+ * pour faciliter le débogage et la maintenance.&lt;/p&gt;
+ * 
+ * @author Poseidon Trading App
+ * @version 1.0
+ * @since 1.0
+ */
+@Controller
+@RequestMapping(&quot;/bidList&quot;)
+<span class="fc" id="L37">public class BidListController {</span>
+    /** Logger pour tracer les opérations et erreurs du contrôleur */
+<span class="fc" id="L39">    private static final Logger logger = LoggerFactory.getLogger(BidListController.class);</span>
+
+    /** Service de gestion des BidList injecté par Spring */
+    @Autowired
+    private IBidListService bidListService;
+
+    /**
+     * Affiche la liste de toutes les BidList.
+     * 
+     * &lt;p&gt;Cette méthode récupère toutes les entités BidList depuis le service,
+     * les convertit en DTOs pour l'affichage et gère les messages de statut
+     * (succès/erreur) transmis via les paramètres de requête.&lt;/p&gt;
+     * 
+     * @param model Le modèle Spring MVC pour passer les données à la vue
+     * @param success Paramètre optionnel indiquant le type de succès (created, updated, deleted)
+     * @param error Paramètre optionnel indiquant le type d'erreur (notfound, invalid, unexpected)
+     * @return Le nom de la vue Thymeleaf &quot;bidList/list&quot;
+     */
+    @GetMapping(&quot;/list&quot;)
+    public String home(Model model, 
+                      @RequestParam(value = &quot;success&quot;, required = false) String success,
+                      @RequestParam(value = &quot;error&quot;, required = false) String error) {
+        try {
+            // Conversion Entity -&gt; DTO pour l'affichage
+<span class="fc" id="L63">            List&lt;BidList&gt; bidListEntities = bidListService.findAll();</span>
+<span class="fc" id="L64">            List&lt;BidListDTO&gt; bidListDTOs = bidListEntities.stream()</span>
+<span class="fc" id="L65">                    .map(BidListMapper::toDTO)</span>
+<span class="fc" id="L66">                    .collect(Collectors.toList());</span>
+            
+<span class="fc" id="L68">            model.addAttribute(&quot;bidLists&quot;, bidListDTOs);</span>
+            
+            // Messages de succès/erreur
+<span class="fc" id="L71">            addStatusMessages(model, success, error);</span>
+            
+<span class="fc" id="L73">            return &quot;bidList/list&quot;;</span>
+<span class="fc" id="L74">        } catch (Exception e) {</span>
+<span class="fc" id="L75">            logger.error(&quot;Error loading BidList list&quot;, e);</span>
+<span class="fc" id="L76">            model.addAttribute(&quot;errorMessage&quot;, &quot;Error loading data: &quot; + e.getMessage());</span>
+<span class="fc" id="L77">            return &quot;bidList/list&quot;;</span>
+        }
+    }
+
+    /**
+     * Affiche le formulaire de création d'une nouvelle BidList.
+     * 
+     * &lt;p&gt;Cette méthode prépare un DTO vide qui sera utilisé pour lier
+     * les données du formulaire de création.&lt;/p&gt;
+     * 
+     * @param model Le modèle Spring MVC pour passer les données à la vue
+     * @return Le nom de la vue Thymeleaf &quot;bidList/add&quot;
+     */
+    @GetMapping(&quot;/add&quot;)
+    public String addBidForm(Model model) {
+        // Utilisation du DTO pour le formulaire
+<span class="fc" id="L93">        model.addAttribute(&quot;bidListDTO&quot;, new BidListDTO());</span>
+<span class="fc" id="L94">        return &quot;bidList/add&quot;;</span>
+    }
+
+    /**
+     * Traite la soumission du formulaire de création d'une BidList.
+     * 
+     * &lt;p&gt;Cette méthode valide les données soumises, les convertit de DTO vers entité,
+     * les sauvegarde via le service et redirige vers la liste avec un message de succès.
+     * En cas d'erreur de validation ou d'exception, elle retourne au formulaire avec
+     * un message d'erreur approprié.&lt;/p&gt;
+     * 
+     * @param bidListDTO Les données de la BidList à créer, validées avec Bean Validation
+     * @param result Le résultat de la validation Bean Validation
+     * @param model Le modèle Spring MVC pour passer les données à la vue
+     * @param redirectAttributes Attributs pour la redirection (messages de succès/erreur)
+     * @return Redirection vers la liste en cas de succès, ou retour au formulaire en cas d'erreur
+     */
+    @PostMapping(&quot;/validate&quot;)
+    public String validate(@Valid @ModelAttribute(&quot;bidListDTO&quot;) BidListDTO bidListDTO, 
+                          BindingResult result, 
+                          Model model,
+                          RedirectAttributes redirectAttributes) {
+<span class="fc" id="L116">        logger.info(&quot;Attempting to create new BidList: account={}, type={}&quot;, </span>
+<span class="fc" id="L117">                   bidListDTO.getAccount(), bidListDTO.getType());</span>
+        
+<span class="fc bfc" id="L119" title="All 2 branches covered.">        if (result.hasErrors()) {</span>
+<span class="fc" id="L120">            logger.warn(&quot;Validation errors found: {}&quot;, result.getAllErrors());</span>
+<span class="fc" id="L121">            model.addAttribute(&quot;bidListDTO&quot;, bidListDTO);</span>
+<span class="fc" id="L122">            return &quot;bidList/add&quot;;</span>
+        }
+        
+        try {
+            // Conversion DTO -&gt; Entity pour la persistance
+<span class="fc" id="L127">            BidList bidListEntity = BidListMapper.toEntity(bidListDTO);</span>
+<span class="fc" id="L128">            BidList savedBid = bidListService.save(bidListEntity);</span>
+            
+<span class="fc" id="L130">            logger.info(&quot;BidList created successfully with ID: {}&quot;, savedBid.getBidListId());</span>
+<span class="fc" id="L131">            redirectAttributes.addAttribute(&quot;success&quot;, &quot;created&quot;);</span>
+<span class="fc" id="L132">            return &quot;redirect:/bidList/list&quot;;</span>
+<span class="fc" id="L133">        } catch (IllegalArgumentException e) {</span>
+<span class="fc" id="L134">            logger.error(&quot;Business validation error while saving BidList&quot;, e);</span>
+<span class="fc" id="L135">            model.addAttribute(&quot;bidListDTO&quot;, bidListDTO);</span>
+<span class="fc" id="L136">            model.addAttribute(&quot;errorMessage&quot;, &quot;Validation error: &quot; + e.getMessage());</span>
+<span class="fc" id="L137">            return &quot;bidList/add&quot;;</span>
+<span class="nc" id="L138">        } catch (Exception e) {</span>
+<span class="nc" id="L139">            logger.error(&quot;Unexpected error while saving BidList&quot;, e);</span>
+<span class="nc" id="L140">            model.addAttribute(&quot;bidListDTO&quot;, bidListDTO);</span>
+<span class="nc" id="L141">            model.addAttribute(&quot;errorMessage&quot;, &quot;An unexpected error occurred. Please try again.&quot;);</span>
+<span class="nc" id="L142">            return &quot;bidList/add&quot;;</span>
+        }
+    }
+
+    /**
+     * Affiche le formulaire de modification d'une BidList existante.
+     * 
+     * &lt;p&gt;Cette méthode récupère une BidList par son ID, la convertit en DTO
+     * et la passe au formulaire de modification. Elle inclut une validation
+     * de l'ID et une gestion d'erreurs robuste.&lt;/p&gt;
+     * 
+     * @param id L'identifiant de la BidList à modifier
+     * @param model Le modèle Spring MVC pour passer les données à la vue
+     * @return Le nom de la vue &quot;bidList/update&quot; ou redirection vers la liste en cas d'erreur
+     */
+    @GetMapping(&quot;/update/{id}&quot;)
+    public String showUpdateForm(@PathVariable(&quot;id&quot;) Integer id, Model model) {
+<span class="fc" id="L159">        logger.info(&quot;Attempting to load BidList for update: ID={}&quot;, id);</span>
+        
+        try {
+<span class="pc bpc" id="L162" title="1 of 4 branches missed.">            if (id == null || id &lt;= 0) {</span>
+<span class="fc" id="L163">                logger.warn(&quot;Invalid ID provided for update: {}&quot;, id);</span>
+<span class="fc" id="L164">                return &quot;redirect:/bidList/list?error=invalid&quot;;</span>
+            }
+            
+<span class="fc" id="L167">            BidList bidListEntity = bidListService.findById(id)</span>
+<span class="fc" id="L168">                    .orElseThrow(() -&gt; new IllegalArgumentException(&quot;BidList not found with ID: &quot; + id));</span>
+            
+            // Conversion Entity -&gt; DTO pour l'affichage/édition
+<span class="fc" id="L171">            BidListDTO bidListDTO = BidListMapper.toDTO(bidListEntity);</span>
+<span class="fc" id="L172">            model.addAttribute(&quot;bidListDTO&quot;, bidListDTO);</span>
+            
+<span class="fc" id="L174">            logger.info(&quot;BidList loaded successfully for update: ID={}&quot;, id);</span>
+<span class="fc" id="L175">            return &quot;bidList/update&quot;;</span>
+<span class="fc" id="L176">        } catch (IllegalArgumentException e) {</span>
+<span class="fc" id="L177">            logger.warn(&quot;BidList not found for update: ID={}&quot;, id);</span>
+<span class="fc" id="L178">            return &quot;redirect:/bidList/list?error=notfound&quot;;</span>
+<span class="fc" id="L179">        } catch (Exception e) {</span>
+<span class="fc" id="L180">            logger.error(&quot;Unexpected error while loading BidList for update: ID={}&quot;, id, e);</span>
+<span class="fc" id="L181">            return &quot;redirect:/bidList/list?error=unexpected&quot;;</span>
+        }
+    }
+
+    /**
+     * Traite la soumission du formulaire de modification d'une BidList.
+     * 
+     * &lt;p&gt;Cette méthode valide les données modifiées, vérifie l'existence de l'entité,
+     * effectue la mise à jour via le service et redirige vers la liste avec un message
+     * de succès. En cas d'erreur, elle retourne au formulaire avec un message d'erreur.&lt;/p&gt;
+     * 
+     * @param id L'identifiant de la BidList à modifier
+     * @param bidListDTO Les données modifiées de la BidList, validées avec Bean Validation
+     * @param result Le résultat de la validation Bean Validation
+     * @param model Le modèle Spring MVC pour passer les données à la vue
+     * @param redirectAttributes Attributs pour la redirection (messages de succès/erreur)
+     * @return Redirection vers la liste en cas de succès, ou retour au formulaire en cas d'erreur
+     */
+    @PostMapping(&quot;/update/{id}&quot;)
+    public String updateBid(@PathVariable(&quot;id&quot;) Integer id, 
+                           @Valid @ModelAttribute(&quot;bidListDTO&quot;) BidListDTO bidListDTO,
+                           BindingResult result,
+                           Model model,
+                           RedirectAttributes redirectAttributes) {
+<span class="fc" id="L205">        logger.info(&quot;Attempting to update BidList: ID={}&quot;, id);</span>
+        
+<span class="fc bfc" id="L207" title="All 2 branches covered.">        if (result.hasErrors()) {</span>
+<span class="fc" id="L208">            logger.warn(&quot;Validation errors found during update: {}&quot;, result.getAllErrors());</span>
+<span class="fc" id="L209">            bidListDTO.setBidListId(id);</span>
+<span class="fc" id="L210">            model.addAttribute(&quot;bidListDTO&quot;, bidListDTO);</span>
+<span class="fc" id="L211">            return &quot;bidList/update&quot;;</span>
+        }
+        
+        try {
+<span class="pc bpc" id="L215" title="1 of 4 branches missed.">            if (id == null || id &lt;= 0) {</span>
+<span class="fc" id="L216">                throw new IllegalArgumentException(&quot;Invalid ID: &quot; + id);</span>
+            }
+            
+            // Vérifier que l'entité existe avant la mise à jour
+<span class="fc bfc" id="L220" title="All 2 branches covered.">            if (!bidListService.existsById(id)) {</span>
+<span class="fc" id="L221">                throw new IllegalArgumentException(&quot;BidList not found with ID: &quot; + id);</span>
+            }
+            
+            // Conversion DTO -&gt; Entity pour la persistance
+<span class="fc" id="L225">            bidListDTO.setBidListId(id);</span>
+<span class="fc" id="L226">            BidList bidListEntity = BidListMapper.toEntity(bidListDTO);</span>
+<span class="fc" id="L227">            BidList updatedBid = bidListService.save(bidListEntity);</span>
+            
+<span class="fc" id="L229">            logger.info(&quot;BidList updated successfully: ID={}&quot;, updatedBid.getBidListId());</span>
+<span class="fc" id="L230">            redirectAttributes.addAttribute(&quot;success&quot;, &quot;updated&quot;);</span>
+<span class="fc" id="L231">            return &quot;redirect:/bidList/list&quot;;</span>
+<span class="fc" id="L232">        } catch (IllegalArgumentException e) {</span>
+<span class="fc" id="L233">            logger.error(&quot;Validation error while updating BidList: ID={}&quot;, id, e);</span>
+<span class="fc" id="L234">            bidListDTO.setBidListId(id);</span>
+<span class="fc" id="L235">            model.addAttribute(&quot;bidListDTO&quot;, bidListDTO);</span>
+<span class="fc" id="L236">            model.addAttribute(&quot;errorMessage&quot;, &quot;Error: &quot; + e.getMessage());</span>
+<span class="fc" id="L237">            return &quot;bidList/update&quot;;</span>
+<span class="fc" id="L238">        } catch (Exception e) {</span>
+<span class="fc" id="L239">            logger.error(&quot;Unexpected error while updating BidList: ID={}&quot;, id, e);</span>
+<span class="fc" id="L240">            bidListDTO.setBidListId(id);</span>
+<span class="fc" id="L241">            model.addAttribute(&quot;bidListDTO&quot;, bidListDTO);</span>
+<span class="fc" id="L242">            model.addAttribute(&quot;errorMessage&quot;, &quot;An unexpected error occurred. Please try again.&quot;);</span>
+<span class="fc" id="L243">            return &quot;bidList/update&quot;;</span>
+        }
+    }
+
+    /**
+     * Supprime une BidList par son identifiant.
+     * 
+     * &lt;p&gt;Cette méthode effectue la suppression d'une BidList via le service
+     * après validation de l'ID. Elle redirige vers la liste avec un message
+     * de succès ou d'erreur selon le résultat de l'opération.&lt;/p&gt;
+     * 
+     * @param id L'identifiant de la BidList à supprimer
+     * @param redirectAttributes Attributs pour la redirection (messages de succès/erreur)
+     * @return Redirection vers la liste avec un message de statut approprié
+     */
+    @GetMapping(&quot;/delete/{id}&quot;)
+    public String deleteBid(@PathVariable(&quot;id&quot;) Integer id, 
+                           RedirectAttributes redirectAttributes) {
+<span class="fc" id="L261">        logger.info(&quot;Attempting to delete BidList: ID={}&quot;, id);</span>
+        
+        try {
+<span class="pc bpc" id="L264" title="1 of 4 branches missed.">            if (id == null || id &lt;= 0) {</span>
+<span class="fc" id="L265">                throw new IllegalArgumentException(&quot;Invalid ID: &quot; + id);</span>
+            }
+            
+<span class="fc" id="L268">            bidListService.deleteById(id);</span>
+<span class="fc" id="L269">            logger.info(&quot;BidList deleted successfully: ID={}&quot;, id);</span>
+<span class="fc" id="L270">            redirectAttributes.addAttribute(&quot;success&quot;, &quot;deleted&quot;);</span>
+<span class="fc" id="L271">            return &quot;redirect:/bidList/list&quot;;</span>
+<span class="fc" id="L272">        } catch (IllegalArgumentException e) {</span>
+<span class="fc" id="L273">            logger.error(&quot;Error deleting BidList: ID={}&quot;, id, e);</span>
+<span class="fc" id="L274">            redirectAttributes.addAttribute(&quot;error&quot;, &quot;notfound&quot;);</span>
+<span class="fc" id="L275">            return &quot;redirect:/bidList/list&quot;;</span>
+<span class="fc" id="L276">        } catch (Exception e) {</span>
+<span class="fc" id="L277">            logger.error(&quot;Unexpected error while deleting BidList: ID={}&quot;, id, e);</span>
+<span class="fc" id="L278">            redirectAttributes.addAttribute(&quot;error&quot;, &quot;unexpected&quot;);</span>
+<span class="fc" id="L279">            return &quot;redirect:/bidList/list&quot;;</span>
+        }
+    }
+    
+    /**
+     * Gestionnaire d'exceptions global pour ce contrôleur.
+     * 
+     * &lt;p&gt;Cette méthode capture toutes les exceptions non gérées spécifiquement
+     * et retourne une vue d'erreur avec un message approprié et une liste vide
+     * pour éviter les erreurs d'affichage.&lt;/p&gt;
+     * 
+     * @param e L'exception capturée
+     * @param model Le modèle Spring MVC pour passer les données à la vue
+     * @return Le nom de la vue &quot;bidList/list&quot; avec un message d'erreur
+     */
+    @ExceptionHandler(Exception.class)
+    public String handleGenericException(Exception e, Model model) {
+<span class="nc" id="L296">        logger.error(&quot;Unhandled exception in BidListController&quot;, e);</span>
+<span class="nc" id="L297">        model.addAttribute(&quot;errorMessage&quot;, &quot;An unexpected error occurred: &quot; + e.getMessage());</span>
+        
+        // En cas d'erreur, on renvoie une liste vide plutôt que de planter
+<span class="nc" id="L300">        model.addAttribute(&quot;bidLists&quot;, List.of());</span>
+<span class="nc" id="L301">        return &quot;bidList/list&quot;;</span>
+    }
+    
+    /**
+     * Méthode utilitaire pour ajouter les messages de statut au modèle.
+     * 
+     * &lt;p&gt;Cette méthode privée centralise la logique d'ajout des messages
+     * de succès et d'erreur au modèle en fonction des paramètres reçus
+     * lors des redirections.&lt;/p&gt;
+     * 
+     * @param model Le modèle Spring MVC auquel ajouter les messages
+     * @param success Le type de message de succès (created, updated, deleted)
+     * @param error Le type de message d'erreur (notfound, invalid, unexpected)
+     */
+    private void addStatusMessages(Model model, String success, String error) {
+<span class="fc bfc" id="L316" title="All 2 branches covered.">        if (&quot;deleted&quot;.equals(success)) {</span>
+<span class="fc" id="L317">            model.addAttribute(&quot;successMessage&quot;, &quot;BidList deleted successfully&quot;);</span>
+<span class="fc bfc" id="L318" title="All 2 branches covered.">        } else if (&quot;created&quot;.equals(success)) {</span>
+<span class="fc" id="L319">            model.addAttribute(&quot;successMessage&quot;, &quot;BidList created successfully&quot;);</span>
+<span class="fc bfc" id="L320" title="All 2 branches covered.">        } else if (&quot;updated&quot;.equals(success)) {</span>
+<span class="fc" id="L321">            model.addAttribute(&quot;successMessage&quot;, &quot;BidList updated successfully&quot;);</span>
+        }
+        
+<span class="fc bfc" id="L324" title="All 2 branches covered.">        if (&quot;notfound&quot;.equals(error)) {</span>
+<span class="fc" id="L325">            model.addAttribute(&quot;errorMessage&quot;, &quot;BidList not found&quot;);</span>
+<span class="fc bfc" id="L326" title="All 2 branches covered.">        } else if (&quot;invalid&quot;.equals(error)) {</span>
+<span class="fc" id="L327">            model.addAttribute(&quot;errorMessage&quot;, &quot;Invalid ID provided&quot;);</span>
+<span class="fc bfc" id="L328" title="All 2 branches covered.">        } else if (&quot;unexpected&quot;.equals(error)) {</span>
+<span class="fc" id="L329">            model.addAttribute(&quot;errorMessage&quot;, &quot;An unexpected error occurred&quot;);</span>
+        }
+<span class="fc" id="L331">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

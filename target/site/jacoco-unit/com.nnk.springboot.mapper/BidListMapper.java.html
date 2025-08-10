@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="fr"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BidListMapper.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spring-boot-skeleton</a> &gt; <a href="index.source.html" class="el_package">com.nnk.springboot.mapper</a> &gt; <span class="el_source">BidListMapper.java</span></div><h1>BidListMapper.java</h1><pre class="source lang-java linenums">package com.nnk.springboot.mapper;
+
+import com.nnk.springboot.domain.BidList;
+import com.nnk.springboot.dto.BidListDTO;
+
+/**
+ * Mapper statique pour la conversion entre entités BidList et DTOs BidListDTO.
+ * 
+ * &lt;p&gt;Cette classe utilitaire implémente le pattern Mapper pour assurer la conversion
+ * bidirectionnelle entre la couche de persistance (entités JPA) et la couche de
+ * présentation (DTOs) dans l'architecture de l'application de trading Poseidon.&lt;/p&gt;
+ * 
+ * &lt;p&gt;Responsabilités du mapper :&lt;/p&gt;
+ * &lt;ul&gt;
+ *   &lt;li&gt;&lt;strong&gt;Conversion Entity → DTO&lt;/strong&gt; : Pour l'affichage dans les vues&lt;/li&gt;
+ *   &lt;li&gt;&lt;strong&gt;Conversion DTO → Entity&lt;/strong&gt; : Pour la persistance en base&lt;/li&gt;
+ *   &lt;li&gt;&lt;strong&gt;Gestion des valeurs null&lt;/strong&gt; : Protection contre les NPE&lt;/li&gt;
+ *   &lt;li&gt;&lt;strong&gt;Mapping complet&lt;/strong&gt; : Tous les champs sont mappés&lt;/li&gt;
+ * &lt;/ul&gt;
+ * 
+ * &lt;p&gt;Architecture et pattern :&lt;/p&gt;
+ * &lt;ul&gt;
+ *   &lt;li&gt;&lt;strong&gt;Stateless&lt;/strong&gt; : Méthodes statiques sans état&lt;/li&gt;
+ *   &lt;li&gt;&lt;strong&gt;Thread-safe&lt;/strong&gt; : Utilisation sécurisée en environnement concurrent&lt;/li&gt;
+ *   &lt;li&gt;&lt;strong&gt;Séparation des couches&lt;/strong&gt; : Isole la logique de conversion&lt;/li&gt;
+ *   &lt;li&gt;&lt;strong&gt;Réutilisabilité&lt;/strong&gt; : Utilisable dans tous les services et contrôleurs&lt;/li&gt;
+ * &lt;/ul&gt;
+ * 
+ * &lt;p&gt;Utilisation typique :&lt;/p&gt;
+ * &lt;pre&gt;
+ * // Dans un contrôleur - Affichage
+ * BidList entity = bidListService.findById(id);
+ * BidListDTO dto = BidListMapper.toDTO(entity);
+ * model.addAttribute(&quot;bidList&quot;, dto);
+ * 
+ * // Dans un contrôleur - Sauvegarde
+ * BidList entity = BidListMapper.toEntity(bidListDTO);
+ * bidListService.save(entity);
+ * &lt;/pre&gt;
+ * 
+ * @author Poseidon Trading App
+ * @version 1.0
+ * @since 1.0
+ * @see com.nnk.springboot.domain.BidList
+ * @see com.nnk.springboot.dto.BidListDTO
+ */
+<span class="nc" id="L47">public class BidListMapper {</span>
+
+    /**
+     * Convertit une entité BidList en DTO BidListDTO.
+     * 
+     * &lt;p&gt;Cette méthode transforme une entité JPA en objet de transfert de données
+     * pour l'affichage dans les vues. Elle copie tous les champs de l'entité
+     * vers le DTO correspondant, y compris les champs d'audit et de métadonnées.&lt;/p&gt;
+     * 
+     * &lt;p&gt;Cas d'usage principaux :&lt;/p&gt;
+     * &lt;ul&gt;
+     *   &lt;li&gt;&lt;strong&gt;Affichage en lecture seule&lt;/strong&gt; : Listes, détails&lt;/li&gt;
+     *   &lt;li&gt;&lt;strong&gt;Pré-remplissage de formulaires&lt;/strong&gt; : Modification&lt;/li&gt;
+     *   &lt;li&gt;&lt;strong&gt;Réponses API&lt;/strong&gt; : Sérialisation JSON&lt;/li&gt;
+     *   &lt;li&gt;&lt;strong&gt;Export de données&lt;/strong&gt; : Rapports, fichiers&lt;/li&gt;
+     * &lt;/ul&gt;
+     * 
+     * &lt;p&gt;Champs mappés :&lt;/p&gt;
+     * &lt;ul&gt;
+     *   &lt;li&gt;Identifiant et données core : bidListId, account, type&lt;/li&gt;
+     *   &lt;li&gt;Données financières : bidQuantity, askQuantity, bid, ask&lt;/li&gt;
+     *   &lt;li&gt;Métadonnées trading : benchmark, security, status, trader, book&lt;/li&gt;
+     *   &lt;li&gt;Informations contextuelles : commentary, dealName, dealType, side&lt;/li&gt;
+     *   &lt;li&gt;Données d'audit : creationName, revisionName, sourceListId&lt;/li&gt;
+     * &lt;/ul&gt;
+     * 
+     * @param entity L'entité BidList source à convertir (peut être null)
+     * @return Le DTO BidListDTO correspondant, ou null si l'entité source est null
+     * @throws aucune exception n'est levée (gestion defensive du null)
+     */
+    public static BidListDTO toDTO(BidList entity) {
+<span class="fc bfc" id="L78" title="All 2 branches covered.">        if (entity == null) return null;</span>
+<span class="fc" id="L79">        BidListDTO dto = new BidListDTO();</span>
+<span class="fc" id="L80">        dto.setBidListId(entity.getBidListId());</span>
+<span class="fc" id="L81">        dto.setAccount(entity.getAccount());</span>
+<span class="fc" id="L82">        dto.setType(entity.getType());</span>
+<span class="fc" id="L83">        dto.setBidQuantity(entity.getBidQuantity());</span>
+<span class="fc" id="L84">        dto.setAskQuantity(entity.getAskQuantity());</span>
+<span class="fc" id="L85">        dto.setBid(entity.getBid());</span>
+<span class="fc" id="L86">        dto.setAsk(entity.getAsk());</span>
+<span class="fc" id="L87">        dto.setBenchmark(entity.getBenchmark());</span>
+<span class="fc" id="L88">        dto.setCommentary(entity.getCommentary());</span>
+<span class="fc" id="L89">        dto.setSecurity(entity.getSecurity());</span>
+<span class="fc" id="L90">        dto.setStatus(entity.getStatus());</span>
+<span class="fc" id="L91">        dto.setTrader(entity.getTrader());</span>
+<span class="fc" id="L92">        dto.setBook(entity.getBook());</span>
+<span class="fc" id="L93">        dto.setCreationName(entity.getCreationName());</span>
+<span class="fc" id="L94">        dto.setRevisionName(entity.getRevisionName());</span>
+<span class="fc" id="L95">        dto.setDealName(entity.getDealName());</span>
+<span class="fc" id="L96">        dto.setDealType(entity.getDealType());</span>
+<span class="fc" id="L97">        dto.setSourceListId(entity.getSourceListId());</span>
+<span class="fc" id="L98">        dto.setSide(entity.getSide());</span>
+<span class="fc" id="L99">        return dto;</span>
+    }
+
+    /**
+     * Convertit un DTO BidListDTO en entité BidList.
+     * 
+     * &lt;p&gt;Cette méthode transforme un objet de transfert de données (généralement
+     * provenant d'un formulaire web) en entité JPA prête pour la persistance.
+     * Elle effectue un mapping complet de tous les champs du DTO vers l'entité.&lt;/p&gt;
+     * 
+     * &lt;p&gt;Cas d'usage principaux :&lt;/p&gt;
+     * &lt;ul&gt;
+     *   &lt;li&gt;&lt;strong&gt;Création d'entités&lt;/strong&gt; : Nouvelles offres depuis formulaires&lt;/li&gt;
+     *   &lt;li&gt;&lt;strong&gt;Mise à jour d'entités&lt;/strong&gt; : Modifications utilisateur&lt;/li&gt;
+     *   &lt;li&gt;&lt;strong&gt;Import de données&lt;/strong&gt; : Chargement en masse&lt;/li&gt;
+     *   &lt;li&gt;&lt;strong&gt;API REST&lt;/strong&gt; : Désérialisation JSON vers entité&lt;/li&gt;
+     * &lt;/ul&gt;
+     * 
+     * &lt;p&gt;Comportement spécifique :&lt;/p&gt;
+     * &lt;ul&gt;
+     *   &lt;li&gt;&lt;strong&gt;Tous les champs mappés&lt;/strong&gt; : Aucune donnée perdue&lt;/li&gt;
+     *   &lt;li&gt;&lt;strong&gt;ID préservé&lt;/strong&gt; : Pour les opérations de mise à jour&lt;/li&gt;
+     *   &lt;li&gt;&lt;strong&gt;Validation déléguée&lt;/strong&gt; : Bean Validation se fait côté DTO&lt;/li&gt;
+     *   &lt;li&gt;&lt;strong&gt;Timestamps exclus&lt;/strong&gt; : Gérés automatiquement par JPA&lt;/li&gt;
+     * &lt;/ul&gt;
+     * 
+     * &lt;p&gt;Note importante : Cette méthode ne gère pas les timestamps automatiques
+     * (creationDate, revisionDate, bidListDate) qui sont typiquement gérés par
+     * des listeners JPA ou des triggers de base de données.&lt;/p&gt;
+     * 
+     * @param dto Le DTO BidListDTO source à convertir (peut être null)
+     * @return L'entité BidList correspondante, ou null si le DTO source est null
+     * @throws aucune exception n'est levée (gestion defensive du null)
+     */
+    public static BidList toEntity(BidListDTO dto) {
+<span class="fc bfc" id="L134" title="All 2 branches covered.">        if (dto == null) return null;</span>
+<span class="fc" id="L135">        BidList entity = new BidList();</span>
+<span class="fc" id="L136">        entity.setBidListId(dto.getBidListId());</span>
+<span class="fc" id="L137">        entity.setAccount(dto.getAccount());</span>
+<span class="fc" id="L138">        entity.setType(dto.getType());</span>
+<span class="fc" id="L139">        entity.setBidQuantity(dto.getBidQuantity());</span>
+<span class="fc" id="L140">        entity.setAskQuantity(dto.getAskQuantity());</span>
+<span class="fc" id="L141">        entity.setBid(dto.getBid());</span>
+<span class="fc" id="L142">        entity.setAsk(dto.getAsk());</span>
+<span class="fc" id="L143">        entity.setBenchmark(dto.getBenchmark());</span>
+<span class="fc" id="L144">        entity.setCommentary(dto.getCommentary());</span>
+<span class="fc" id="L145">        entity.setSecurity(dto.getSecurity());</span>
+<span class="fc" id="L146">        entity.setStatus(dto.getStatus());</span>
+<span class="fc" id="L147">        entity.setTrader(dto.getTrader());</span>
+<span class="fc" id="L148">        entity.setBook(dto.getBook());</span>
+<span class="fc" id="L149">        entity.setCreationName(dto.getCreationName());</span>
+<span class="fc" id="L150">        entity.setRevisionName(dto.getRevisionName());</span>
+<span class="fc" id="L151">        entity.setDealName(dto.getDealName());</span>
+<span class="fc" id="L152">        entity.setDealType(dto.getDealType());</span>
+<span class="fc" id="L153">        entity.setSourceListId(dto.getSourceListId());</span>
+<span class="fc" id="L154">        entity.setSide(dto.getSide());</span>
+<span class="fc" id="L155">        return entity;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

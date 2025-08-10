@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="fr"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>LoginController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spring-boot-skeleton</a> &gt; <a href="index.source.html" class="el_package">com.nnk.springboot.controllers</a> &gt; <span class="el_source">LoginController.java</span></div><h1>LoginController.java</h1><pre class="source lang-java linenums">package com.nnk.springboot.controllers;
+
+import com.nnk.springboot.repositories.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.servlet.ModelAndView;
+
+/**
+ * Contrôleur Spring MVC pour la gestion de l'authentification et des accès sécurisés.
+ * 
+ * &lt;p&gt;Ce contrôleur gère les aspects liés à l'authentification des utilisateurs,
+ * l'affichage des pages de connexion, l'accès aux ressources sécurisées et
+ * la gestion des erreurs d'autorisation dans l'application Poseidon Trading.&lt;/p&gt;
+ * 
+ * &lt;p&gt;Il fournit les points d'entrée pour :&lt;/p&gt;
+ * &lt;ul&gt;
+ *   &lt;li&gt;La page de connexion utilisateur&lt;/li&gt;
+ *   &lt;li&gt;L'accès aux détails des utilisateurs pour les utilisateurs autorisés&lt;/li&gt;
+ *   &lt;li&gt;La gestion des erreurs d'autorisation (page 403)&lt;/li&gt;
+ * &lt;/ul&gt;
+ * 
+ * &lt;p&gt;Ce contrôleur travaille en collaboration avec Spring Security pour
+ * assurer la sécurité de l'application.&lt;/p&gt;
+ * 
+ * @author Poseidon Trading App
+ * @version 1.0
+ * @since 1.0
+ */
+@Controller
+<span class="fc" id="L31">public class LoginController {</span>
+
+    /** Repository des utilisateurs injecté par Spring pour l'accès aux données utilisateur */
+    @Autowired
+    private UserRepository userRepository;
+
+    /**
+     * Affiche la page de connexion de l'application.
+     * 
+     * &lt;p&gt;Cette méthode gère l'affichage du formulaire de connexion pour
+     * l'authentification des utilisateurs. Elle est accessible publiquement
+     * et constitue le point d'entrée principal pour l'authentification.&lt;/p&gt;
+     * 
+     * &lt;p&gt;La gestion de l'authentification proprement dite est déléguée
+     * à Spring Security qui intercepte les soumissions du formulaire.&lt;/p&gt;
+     * 
+     * @return ModelAndView contenant la vue &quot;login&quot; pour l'affichage du formulaire de connexion
+     */
+    @GetMapping(&quot;/login&quot;)
+    public ModelAndView login() {
+<span class="nc" id="L51">        ModelAndView mav = new ModelAndView();</span>
+<span class="nc" id="L52">        mav.setViewName(&quot;login&quot;);</span>
+<span class="nc" id="L53">        return mav;</span>
+    }
+
+    /**
+     * Affiche la liste des utilisateurs pour les utilisateurs autorisés.
+     * 
+     * &lt;p&gt;Cette méthode est accessible uniquement aux utilisateurs authentifiés
+     * ayant les droits d'accès appropriés (path sécurisé &quot;/secure/article-details&quot;).
+     * Elle récupère tous les utilisateurs depuis le repository et les affiche
+     * dans la vue de liste des utilisateurs.&lt;/p&gt;
+     * 
+     * &lt;p&gt;L'accès à cette ressource est contrôlé par Spring Security et nécessite
+     * une authentification préalable. En cas d'accès non autorisé, l'utilisateur
+     * sera redirigé vers la page d'erreur 403.&lt;/p&gt;
+     * 
+     * @return ModelAndView contenant la liste de tous les utilisateurs et la vue &quot;user/list&quot;
+     */
+    @GetMapping(&quot;/secure/article-details&quot;)
+    public ModelAndView getAllUserArticles() {
+<span class="nc" id="L72">        ModelAndView mav = new ModelAndView();</span>
+<span class="nc" id="L73">        mav.addObject(&quot;users&quot;, userRepository.findAll());</span>
+<span class="nc" id="L74">        mav.setViewName(&quot;user/list&quot;);</span>
+<span class="nc" id="L75">        return mav;</span>
+    }
+
+    /**
+     * Affiche la page d'erreur d'autorisation (HTTP 403 - Forbidden).
+     * 
+     * &lt;p&gt;Cette méthode gère l'affichage de la page d'erreur lorsqu'un utilisateur
+     * tente d'accéder à une ressource pour laquelle il n'a pas les autorisations
+     * nécessaires. Elle fournit un message explicite à l'utilisateur concernant
+     * l'interdiction d'accès.&lt;/p&gt;
+     * 
+     * &lt;p&gt;Cette page est généralement appelée par Spring Security lorsqu'un
+     * utilisateur authentifié n'a pas les rôles ou permissions requis pour
+     * accéder à une ressource particulière.&lt;/p&gt;
+     * 
+     * @return ModelAndView contenant le message d'erreur et la vue &quot;403&quot; pour l'affichage de l'erreur d'autorisation
+     */
+    @GetMapping(&quot;/app/error&quot;)
+    public ModelAndView error() {
+<span class="nc" id="L94">        ModelAndView mav = new ModelAndView();</span>
+<span class="nc" id="L95">        String errorMessage= &quot;You are not authorized for the requested data.&quot;;</span>
+<span class="nc" id="L96">        mav.addObject(&quot;errorMsg&quot;, errorMessage);</span>
+<span class="nc" id="L97">        mav.setViewName(&quot;403&quot;);</span>
+<span class="nc" id="L98">        return mav;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

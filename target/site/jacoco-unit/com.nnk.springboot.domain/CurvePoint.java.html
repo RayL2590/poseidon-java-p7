@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="fr"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CurvePoint.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spring-boot-skeleton</a> &gt; <a href="index.source.html" class="el_package">com.nnk.springboot.domain</a> &gt; <span class="el_source">CurvePoint.java</span></div><h1>CurvePoint.java</h1><pre class="source lang-java linenums">package com.nnk.springboot.domain;
+
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.time.LocalDateTime;
+
+/**
+ * Entité JPA représentant un point de courbe financière dans le système de trading Poseidon.
+ * 
+ * &lt;p&gt;Cette entité modélise les points individuels qui constituent les courbes financières
+ * utilisées dans le trading et l'analyse quantitative. Chaque point de courbe représente
+ * une valeur à un terme donné (échéance) pour une courbe spécifique, comme les courbes
+ * de taux d'intérêt, les courbes de rendement ou les courbes de volatilité.&lt;/p&gt;
+ * 
+ * &lt;p&gt;Concepts financiers :&lt;/p&gt;
+ * &lt;ul&gt;
+ *   &lt;li&gt;&lt;strong&gt;Courbe financière&lt;/strong&gt; : Représentation graphique de la relation entre
+ *       le temps (terme) et une valeur financière (taux, prix, volatilité)&lt;/li&gt;
+ *   &lt;li&gt;&lt;strong&gt;Terme&lt;/strong&gt; : Échéance ou durée jusqu'à maturité (ex: 1 an, 5 ans)&lt;/li&gt;
+ *   &lt;li&gt;&lt;strong&gt;Valeur&lt;/strong&gt; : Taux, prix ou autre métrique financière au terme donné&lt;/li&gt;
+ * &lt;/ul&gt;
+ * 
+ * &lt;p&gt;Caractéristiques techniques :&lt;/p&gt;
+ * &lt;ul&gt;
+ *   &lt;li&gt;Entité JPA mappée sur la table &quot;CurvePoint&quot;&lt;/li&gt;
+ *   &lt;li&gt;Identifiant auto-généré avec stratégie IDENTITY&lt;/li&gt;
+ *   &lt;li&gt;Utilisation de Lombok pour la génération automatique des getters/setters&lt;/li&gt;
+ *   &lt;li&gt;Support des timestamps pour l'audit et la datation des données&lt;/li&gt;
+ * &lt;/ul&gt;
+ * 
+ * @author Poseidon Trading App
+ * @version 1.0
+ * @since 1.0
+ */
+@Getter
+<span class="fc" id="L37">@Setter</span>
+<span class="fc" id="L38">@NoArgsConstructor</span>
+<span class="nc" id="L39">@AllArgsConstructor</span>
+@Entity
+@Table(name = &quot;curve_point&quot;)
+public class CurvePoint {
+
+    /** 
+     * Identifiant unique du point de courbe.
+     * Clé primaire auto-générée avec stratégie IDENTITY.
+     */
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = &quot;Id&quot;)
+<span class="fc" id="L51">    private Integer id;</span>
+
+    /** 
+     * Identifiant de la courbe à laquelle appartient ce point.
+     * 
+     * &lt;p&gt;Permet de regrouper plusieurs points appartenant à la même courbe financière.
+     * Par exemple, tous les points d'une courbe de taux USD auront le même curveId.&lt;/p&gt;
+     */
+    @Column(name = &quot;CurveId&quot;)
+<span class="fc" id="L60">    private Integer curveId;</span>
+
+    /** 
+     * Date de référence (as of date) pour ce point de courbe.
+     * 
+     * &lt;p&gt;Représente la date à laquelle cette valeur de courbe était valide.
+     * Essentiel pour l'historisation et la valorisation à une date donnée.
+     * En finance, les courbes évoluent quotidiennement selon les conditions de marché.&lt;/p&gt;
+     */
+    @Column(name = &quot;asOfDate&quot;)
+<span class="fc" id="L70">    private LocalDateTime asOfDate;</span>
+
+    /** 
+     * Terme ou échéance de ce point de courbe.
+     * 
+     * &lt;p&gt;Représente la durée ou l'échéance en années (généralement) pour ce point.
+     * Exemples : 0.25 (3 mois), 1.0 (1 an), 5.0 (5 ans), 10.0 (10 ans).
+     * Plus le terme est long, plus l'échéance est éloignée.&lt;/p&gt;
+     */
+    @Column(name = &quot;term&quot;)
+<span class="fc" id="L80">    private Double term;</span>
+
+    /** 
+     * Valeur financière à ce terme spécifique.
+     * 
+     * &lt;p&gt;La valeur dépend du type de courbe :&lt;/p&gt;
+     * &lt;ul&gt;
+     *   &lt;li&gt;Courbe de taux : taux d'intérêt en pourcentage (ex: 2.5 pour 2.5%)&lt;/li&gt;
+     *   &lt;li&gt;Courbe de rendement : rendement en pourcentage&lt;/li&gt;
+     *   &lt;li&gt;Courbe de volatilité : volatilité implicite en pourcentage&lt;/li&gt;
+     *   &lt;li&gt;Courbe de crédit : spread de crédit en points de base&lt;/li&gt;
+     * &lt;/ul&gt;
+     */
+    @Column(name = &quot;value&quot;)
+<span class="fc" id="L94">    private Double value;</span>
+
+    /** 
+     * Date et heure de création de cet enregistrement.
+     * 
+     * &lt;p&gt;Timestamp d'audit indiquant quand ce point de courbe a été
+     * enregistré dans le système. Différent de asOfDate qui indique
+     * la date de validité financière des données.&lt;/p&gt;
+     */
+    @Column(name = &quot;creationDate&quot;)
+<span class="fc" id="L104">    private LocalDateTime creationDate;</span>
+
+    /**
+     * Constructeur de convenance pour les tests et la création rapide d'instances.
+     * 
+     * &lt;p&gt;Ce constructeur permet de créer un CurvePoint avec les champs essentiels
+     * pour les tests unitaires ou la création rapide d'instances. Il initialise
+     * les trois attributs fondamentaux qui définissent un point de courbe :
+     * l'identifiant de courbe, le terme et la valeur.&lt;/p&gt;
+     * 
+     * &lt;p&gt;Les autres champs (id, asOfDate, creationDate) peuvent être définis
+     * séparément selon les besoins du contexte d'utilisation.&lt;/p&gt;
+     * 
+     * @param curveId L'identifiant de la courbe à laquelle appartient ce point
+     * @param term Le terme ou échéance de ce point (en années généralement)
+     * @param value La valeur financière à ce terme spécifique
+     */
+<span class="fc" id="L121">    public CurvePoint(Integer curveId, Double term, Double value) {</span>
+<span class="fc" id="L122">        this.curveId = curveId;</span>
+<span class="fc" id="L123">        this.term = term;</span>
+<span class="fc" id="L124">        this.value = value;</span>
+<span class="fc" id="L125">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

@@ -1,0 +1,262 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="fr"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RatingMapper.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spring-boot-skeleton</a> &gt; <a href="index.source.html" class="el_package">com.nnk.springboot.mapper</a> &gt; <span class="el_source">RatingMapper.java</span></div><h1>RatingMapper.java</h1><pre class="source lang-java linenums">package com.nnk.springboot.mapper;
+
+import com.nnk.springboot.domain.Rating;
+import com.nnk.springboot.dto.RatingDTO;
+import org.springframework.stereotype.Component;
+
+/**
+ * Mapper Spring pour la conversion entre entités Rating et DTOs RatingDTO.
+ * 
+ * &lt;p&gt;Cette classe composant Spring implémente le pattern Mapper pour assurer la conversion
+ * bidirectionnelle entre la couche de persistance (entités JPA) et la couche de
+ * présentation (DTOs) spécifiquement pour les notations de crédit financières.&lt;/p&gt;
+ * 
+ * &lt;p&gt;Spécificités des notations de crédit :&lt;/p&gt;
+ * &lt;ul&gt;
+ *   &lt;li&gt;&lt;strong&gt;Données critiques&lt;/strong&gt; : Précision requise pour l'analyse de risque&lt;/li&gt;
+ *   &lt;li&gt;&lt;strong&gt;Standards internationaux&lt;/strong&gt; : Respect des échelles officielles&lt;/li&gt;
+ *   &lt;li&gt;&lt;strong&gt;Cohérence inter-agences&lt;/strong&gt; : Validation des équivalences&lt;/li&gt;
+ *   &lt;li&gt;&lt;strong&gt;Classification ordonnée&lt;/strong&gt; : Gestion des hiérarchies de qualité&lt;/li&gt;
+ * &lt;/ul&gt;
+ * 
+ * &lt;p&gt;Architecture et principes SOLID :&lt;/p&gt;
+ * &lt;ul&gt;
+ *   &lt;li&gt;&lt;strong&gt;SRP&lt;/strong&gt; : Responsabilité unique de conversion Rating&lt;/li&gt;
+ *   &lt;li&gt;&lt;strong&gt;OCP&lt;/strong&gt; : Extensible via l'interface IEntityMapper&lt;/li&gt;
+ *   &lt;li&gt;&lt;strong&gt;LSP&lt;/strong&gt; : Substitution respectée pour l'interface&lt;/li&gt;
+ *   &lt;li&gt;&lt;strong&gt;ISP&lt;/strong&gt; : Interface spécialisée pour les mappings&lt;/li&gt;
+ *   &lt;li&gt;&lt;strong&gt;DIP&lt;/strong&gt; : Dépendance sur l'abstraction IEntityMapper&lt;/li&gt;
+ * &lt;/ul&gt;
+ * 
+ * &lt;p&gt;Fonctionnalités avancées :&lt;/p&gt;
+ * &lt;ul&gt;
+ *   &lt;li&gt;&lt;strong&gt;Conversion complète&lt;/strong&gt; : Entity ↔ DTO bidirectionnelle&lt;/li&gt;
+ *   &lt;li&gt;&lt;strong&gt;Mise à jour in-place&lt;/strong&gt; : Optimisation pour les modifications&lt;/li&gt;
+ *   &lt;li&gt;&lt;strong&gt;Gestion défensive&lt;/strong&gt; : Protection contre les valeurs null&lt;/li&gt;
+ *   &lt;li&gt;&lt;strong&gt;Injection Spring&lt;/strong&gt; : Composant géré par le conteneur IoC&lt;/li&gt;
+ * &lt;/ul&gt;
+ * 
+ * &lt;p&gt;Usage typique dans l'écosystème financier :&lt;/p&gt;
+ * &lt;pre&gt;
+ * // Affichage des notations
+ * &amp;#64;Autowired
+ * private RatingMapper mapper;
+ * 
+ * // Liste pour interface utilisateur
+ * List&amp;lt;Rating&amp;gt; ratings = ratingService.findAll();
+ * List&amp;lt;RatingDTO&amp;gt; dtos = ratings.stream()
+ *     .map(mapper::toDTO)
+ *     .collect(Collectors.toList());
+ * 
+ * // Mise à jour d'une notation
+ * Rating existing = ratingService.findById(id);
+ * mapper.updateEntityFromDTO(existing, modifiedDTO);
+ * ratingService.save(existing);
+ * &lt;/pre&gt;
+ * 
+ * @author Poseidon Trading App
+ * @version 1.0
+ * @since 1.0
+ * @see com.nnk.springboot.domain.Rating
+ * @see com.nnk.springboot.dto.RatingDTO
+ * @see IEntityMapper
+ */
+@Component
+<span class="fc" id="L65">public class RatingMapper implements IEntityMapper&lt;Rating, RatingDTO&gt; {</span>
+
+    /**
+     * Convertit une entité Rating en DTO RatingDTO.
+     * 
+     * &lt;p&gt;Cette méthode transforme une entité JPA de notation de crédit en objet
+     * de transfert de données pour l'affichage et la manipulation dans les vues.
+     * Elle préserve l'intégrité des données de notation critiques pour l'analyse
+     * de risque financier.&lt;/p&gt;
+     * 
+     * &lt;p&gt;Données mappées :&lt;/p&gt;
+     * &lt;ul&gt;
+     *   &lt;li&gt;&lt;strong&gt;id&lt;/strong&gt; : Identifiant unique de la notation&lt;/li&gt;
+     *   &lt;li&gt;&lt;strong&gt;moodysRating&lt;/strong&gt; : Notation selon l'échelle Moody's&lt;/li&gt;
+     *   &lt;li&gt;&lt;strong&gt;sandPRating&lt;/strong&gt; : Notation selon l'échelle S&amp;P&lt;/li&gt;
+     *   &lt;li&gt;&lt;strong&gt;fitchRating&lt;/strong&gt; : Notation selon l'échelle Fitch&lt;/li&gt;
+     *   &lt;li&gt;&lt;strong&gt;orderNumber&lt;/strong&gt; : Numéro d'ordre pour classification&lt;/li&gt;
+     * &lt;/ul&gt;
+     * 
+     * &lt;p&gt;Cas d'usage financiers :&lt;/p&gt;
+     * &lt;ul&gt;
+     *   &lt;li&gt;&lt;strong&gt;Affichage de grilles&lt;/strong&gt; : Tableaux de notation par émetteur&lt;/li&gt;
+     *   &lt;li&gt;&lt;strong&gt;Export de données&lt;/strong&gt; : Rapports et fichiers de référence&lt;/li&gt;
+     *   &lt;li&gt;&lt;strong&gt;API REST&lt;/strong&gt; : Sérialisation JSON pour clients externes&lt;/li&gt;
+     *   &lt;li&gt;&lt;strong&gt;Analyse comparative&lt;/strong&gt; : Comparaison inter-agences&lt;/li&gt;
+     * &lt;/ul&gt;
+     * 
+     * @param rating L'entité Rating à convertir (peut être null)
+     * @return Le DTO RatingDTO correspondant, ou null si l'entité source est null
+     * @throws aucune exception n'est levée (gestion défensive)
+     */
+    public RatingDTO toDTO(Rating rating) {
+<span class="fc bfc" id="L97" title="All 2 branches covered.">        if (rating == null) {</span>
+<span class="fc" id="L98">            return null;</span>
+        }
+
+<span class="fc" id="L101">        RatingDTO dto = new RatingDTO();</span>
+<span class="fc" id="L102">        dto.setId(rating.getId());</span>
+<span class="fc" id="L103">        dto.setMoodysRating(rating.getMoodysRating());</span>
+<span class="fc" id="L104">        dto.setSandPRating(rating.getSandPRating());</span>
+<span class="fc" id="L105">        dto.setFitchRating(rating.getFitchRating());</span>
+<span class="fc" id="L106">        dto.setOrderNumber(rating.getOrderNumber());</span>
+
+<span class="fc" id="L108">        return dto;</span>
+    }
+
+    /**
+     * Convertit un DTO RatingDTO en entité Rating.
+     * 
+     * &lt;p&gt;Cette méthode transforme un objet de transfert de données (provenant
+     * généralement d'un formulaire web ou d'une API) en entité JPA prête pour
+     * la persistance. Elle assure la cohérence des données de notation critiques
+     * pour la gestion des risques financiers.&lt;/p&gt;
+     * 
+     * &lt;p&gt;Validation et intégrité :&lt;/p&gt;
+     * &lt;ul&gt;
+     *   &lt;li&gt;&lt;strong&gt;Standards de notation&lt;/strong&gt; : Respect des échelles officielles&lt;/li&gt;
+     *   &lt;li&gt;&lt;strong&gt;Cohérence inter-agences&lt;/strong&gt; : Vérification des équivalences&lt;/li&gt;
+     *   &lt;li&gt;&lt;strong&gt;Classification ordonnée&lt;/strong&gt; : Numéros d'ordre valides&lt;/li&gt;
+     *   &lt;li&gt;&lt;strong&gt;Validation déléguée&lt;/strong&gt; : Bean Validation effectuée côté DTO&lt;/li&gt;
+     * &lt;/ul&gt;
+     * 
+     * &lt;p&gt;Cas d'usage financiers :&lt;/p&gt;
+     * &lt;ul&gt;
+     *   &lt;li&gt;&lt;strong&gt;Création de notations&lt;/strong&gt; : Nouvelles évaluations depuis interface&lt;/li&gt;
+     *   &lt;li&gt;&lt;strong&gt;Import de données&lt;/strong&gt; : Chargement depuis agences de notation&lt;/li&gt;
+     *   &lt;li&gt;&lt;strong&gt;Mise à jour périodique&lt;/strong&gt; : Révisions de notations existantes&lt;/li&gt;
+     *   &lt;li&gt;&lt;strong&gt;API REST&lt;/strong&gt; : Réception de données JSON externes&lt;/li&gt;
+     * &lt;/ul&gt;
+     * 
+     * &lt;p&gt;Note : Les métadonnées d'audit ne sont pas mappées car elles sont gérées
+     * automatiquement par la logique métier et les listeners JPA.&lt;/p&gt;
+     * 
+     * @param dto Le DTO RatingDTO à convertir (peut être null)
+     * @return L'entité Rating correspondante, ou null si le DTO source est null
+     * @throws aucune exception n'est levée (gestion défensive)
+     */
+    public Rating toEntity(RatingDTO dto) {
+<span class="fc bfc" id="L143" title="All 2 branches covered.">        if (dto == null) {</span>
+<span class="fc" id="L144">            return null;</span>
+        }
+
+<span class="fc" id="L147">        Rating rating = new Rating();</span>
+<span class="fc" id="L148">        rating.setId(dto.getId());</span>
+<span class="fc" id="L149">        rating.setMoodysRating(dto.getMoodysRating());</span>
+<span class="fc" id="L150">        rating.setSandPRating(dto.getSandPRating());</span>
+<span class="fc" id="L151">        rating.setFitchRating(dto.getFitchRating());</span>
+<span class="fc" id="L152">        rating.setOrderNumber(dto.getOrderNumber());</span>
+
+<span class="fc" id="L154">        return rating;</span>
+    }
+
+    /**
+     * Met à jour une entité Rating existante avec les données d'un DTO.
+     * 
+     * &lt;p&gt;Cette méthode optimisée effectue une mise à jour in-place d'une entité
+     * existante sans créer de nouvelle instance. Elle est particulièrement efficace
+     * pour les opérations de modification où l'entité est déjà chargée en session JPA.&lt;/p&gt;
+     * 
+     * &lt;p&gt;Avantages de la mise à jour in-place :&lt;/p&gt;
+     * &lt;ul&gt;
+     *   &lt;li&gt;&lt;strong&gt;Performance&lt;/strong&gt; : Évite la création d'objets inutiles&lt;/li&gt;
+     *   &lt;li&gt;&lt;strong&gt;Session JPA&lt;/strong&gt; : Préserve l'état de la session Hibernate&lt;/li&gt;
+     *   &lt;li&gt;&lt;strong&gt;Optimistic Locking&lt;/strong&gt; : Maintient la gestion des versions&lt;/li&gt;
+     *   &lt;li&gt;&lt;strong&gt;Lazy Loading&lt;/strong&gt; : Préserve les associations chargées&lt;/li&gt;
+     * &lt;/ul&gt;
+     * 
+     * &lt;p&gt;Champs mis à jour :&lt;/p&gt;
+     * &lt;ul&gt;
+     *   &lt;li&gt;&lt;strong&gt;moodysRating&lt;/strong&gt; : Nouvelle notation Moody's&lt;/li&gt;
+     *   &lt;li&gt;&lt;strong&gt;sandPRating&lt;/strong&gt; : Nouvelle notation S&amp;P&lt;/li&gt;
+     *   &lt;li&gt;&lt;strong&gt;fitchRating&lt;/strong&gt; : Nouvelle notation Fitch&lt;/li&gt;
+     *   &lt;li&gt;&lt;strong&gt;orderNumber&lt;/strong&gt; : Nouveau numéro d'ordre&lt;/li&gt;
+     * &lt;/ul&gt;
+     * 
+     * &lt;p&gt;Champs préservés :&lt;/p&gt;
+     * &lt;ul&gt;
+     *   &lt;li&gt;&lt;strong&gt;id&lt;/strong&gt; : Identifiant technique préservé&lt;/li&gt;
+     *   &lt;li&gt;&lt;strong&gt;Métadonnées d'audit&lt;/strong&gt; : Horodatages de création maintenus&lt;/li&gt;
+     * &lt;/ul&gt;
+     * 
+     * &lt;p&gt;Usage typique :&lt;/p&gt;
+     * &lt;pre&gt;
+     * // Modification d'une notation existante
+     * Rating existing = ratingService.findById(ratingId);
+     * RatingDTO modified = getModifiedDataFromForm();
+     * 
+     * ratingMapper.updateEntityFromDTO(existing, modified);
+     * ratingService.save(existing); // Hibernate détecte les changements
+     * &lt;/pre&gt;
+     * 
+     * &lt;p&gt;Considérations métier :&lt;/p&gt;
+     * &lt;ul&gt;
+     *   &lt;li&gt;&lt;strong&gt;Révision de notation&lt;/strong&gt; : Mise à jour suite à réanalyse&lt;/li&gt;
+     *   &lt;li&gt;&lt;strong&gt;Correction d'erreurs&lt;/strong&gt; : Rectification de saisies erronées&lt;/li&gt;
+     *   &lt;li&gt;&lt;strong&gt;Harmonisation&lt;/strong&gt; : Ajustement pour cohérence inter-agences&lt;/li&gt;
+     *   &lt;li&gt;&lt;strong&gt;Reclassification&lt;/strong&gt; : Modification du numéro d'ordre&lt;/li&gt;
+     * &lt;/ul&gt;
+     * 
+     * @param existingRating L'entité existante à mettre à jour (ne doit pas être null en usage normal)
+     * @param dto Le DTO contenant les nouvelles données (ne doit pas être null en usage normal)
+     * @throws aucune exception n'est levée - protection défensive contre les nulls
+     */
+    public void updateEntityFromDTO(Rating existingRating, RatingDTO dto) {
+<span class="fc bfc" id="L209" title="All 4 branches covered.">        if (existingRating == null || dto == null) {</span>
+<span class="fc" id="L210">            return;</span>
+        }
+
+<span class="fc" id="L213">        existingRating.setMoodysRating(dto.getMoodysRating());</span>
+<span class="fc" id="L214">        existingRating.setSandPRating(dto.getSandPRating());</span>
+<span class="fc" id="L215">        existingRating.setFitchRating(dto.getFitchRating());</span>
+<span class="fc" id="L216">        existingRating.setOrderNumber(dto.getOrderNumber());</span>
+<span class="fc" id="L217">    }</span>
+
+    /**
+     * Crée un DTO avec les notations par défaut pour un niveau de qualité donné.
+     * 
+     * &lt;p&gt;Méthode utilitaire pour générer rapidement des DTOs avec des notations
+     * équivalentes cohérentes entre agences, basées sur les tables de correspondance
+     * standard du marché financier.&lt;/p&gt;
+     * 
+     * &lt;p&gt;Niveaux supportés :&lt;/p&gt;
+     * &lt;ul&gt;
+     *   &lt;li&gt;&lt;strong&gt;&quot;PRIME&quot;&lt;/strong&gt; : AAA/Aaa - Qualité maximale&lt;/li&gt;
+     *   &lt;li&gt;&lt;strong&gt;&quot;HIGH_INVESTMENT&quot;&lt;/strong&gt; : AA/Aa2 - Très haute qualité&lt;/li&gt;
+     *   &lt;li&gt;&lt;strong&gt;&quot;INVESTMENT&quot;&lt;/strong&gt; : A/A2 - Qualité investment grade&lt;/li&gt;
+     *   &lt;li&gt;&lt;strong&gt;&quot;LOWER_INVESTMENT&quot;&lt;/strong&gt; : BBB/Baa2 - Investment grade minimum&lt;/li&gt;
+     *   &lt;li&gt;&lt;strong&gt;&quot;SPECULATIVE&quot;&lt;/strong&gt; : BB/Ba2 - Spéculatif&lt;/li&gt;
+     *   &lt;li&gt;&lt;strong&gt;&quot;HIGH_YIELD&quot;&lt;/strong&gt; : B/B2 - Haut rendement&lt;/li&gt;
+     * &lt;/ul&gt;
+     * 
+     * @param qualityLevel Le niveau de qualité souhaité
+     * @return DTO avec notations équivalentes cohérentes
+     */
+    public RatingDTO createDefaultForQuality(String qualityLevel) {
+<span class="fc bfc" id="L240" title="All 2 branches covered.">        if (qualityLevel == null) {</span>
+<span class="fc" id="L241">            return new RatingDTO();</span>
+        }
+        
+<span class="fc bfc" id="L244" title="All 7 branches covered.">        switch (qualityLevel.toUpperCase()) {</span>
+            case &quot;PRIME&quot;:
+<span class="fc" id="L246">                return new RatingDTO(&quot;Aaa&quot;, &quot;AAA&quot;, &quot;AAA&quot;, 1);</span>
+            case &quot;HIGH_INVESTMENT&quot;:
+<span class="fc" id="L248">                return new RatingDTO(&quot;Aa2&quot;, &quot;AA&quot;, &quot;AA&quot;, 4);</span>
+            case &quot;INVESTMENT&quot;:
+<span class="fc" id="L250">                return new RatingDTO(&quot;A2&quot;, &quot;A&quot;, &quot;A&quot;, 7);</span>
+            case &quot;LOWER_INVESTMENT&quot;:
+<span class="fc" id="L252">                return new RatingDTO(&quot;Baa2&quot;, &quot;BBB&quot;, &quot;BBB&quot;, 10);</span>
+            case &quot;SPECULATIVE&quot;:
+<span class="fc" id="L254">                return new RatingDTO(&quot;Ba2&quot;, &quot;BB&quot;, &quot;BB&quot;, 13);</span>
+            case &quot;HIGH_YIELD&quot;:
+<span class="fc" id="L256">                return new RatingDTO(&quot;B2&quot;, &quot;B&quot;, &quot;B&quot;, 16);</span>
+            default:
+<span class="fc" id="L258">                return new RatingDTO();</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

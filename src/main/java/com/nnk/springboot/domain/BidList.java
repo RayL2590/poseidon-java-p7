@@ -38,7 +38,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "BidList")
+@Table(name = "bid_list")
 public class BidList {
 
     /** 
