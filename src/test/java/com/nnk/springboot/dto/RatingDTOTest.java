@@ -1,5 +1,22 @@
 package com.nnk.springboot.dto;
 
+/**
+ * Tests unitaires pour la classe RatingDTO.
+ * 
+ * <p>Cette classe de test vérifie :</p>
+ * <ul>
+ *   <li>La validation des données avec Bean Validation</li>
+ *   <li>Les constructeurs (défaut, avec paramètres, tous paramètres)</li>
+ *   <li>Les contraintes de validation sur les champs obligatoires</li>
+ *   <li>Les contraintes de format pour les notations financières</li>
+ *   <li>Les contraintes numériques spécifiques aux ratings</li>
+ * </ul>
+ * 
+ * @author Poseidon Trading App Test Suite
+ * @version 1.0
+ * @since 1.0
+ */
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import jakarta.validation.ConstraintViolation;

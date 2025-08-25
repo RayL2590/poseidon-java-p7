@@ -1,5 +1,29 @@
 package com.nnk.springboot.controllers;
 
+/**
+ * Tests unitaires pour le RatingController.
+ * 
+ * <p>Cette classe de test valide le comportement du contrôleur REST pour les notations financières (Rating),
+ * en testant les opérations CRUD via les endpoints HTTP et en vérifiant la gestion des erreurs,
+ * la sécurité et la validation des données de notation.</p>
+ * 
+ * <p>Couverture des tests :</p>
+ * <ul>
+ *   <li><strong>GET /rating</strong> : Affichage de la liste des notations</li>
+ *   <li><strong>GET /rating/add</strong> : Formulaire d'ajout de notation</li>
+ *   <li><strong>POST /rating/validate</strong> : Création d'une nouvelle notation</li>
+ *   <li><strong>GET /rating/update/{id}</strong> : Formulaire de modification</li>
+ *   <li><strong>POST /rating/update/{id}</strong> : Mise à jour d'une notation</li>
+ *   <li><strong>GET /rating/delete/{id}</strong> : Suppression d'une notation</li>
+ *   <li><strong>Validation des données</strong> : Gestion des erreurs de validation</li>
+ *   <li><strong>Gestion des erreurs</strong> : Cas d'entités introuvables</li>
+ * </ul>
+ * 
+ * @author Poseidon Trading App Test Suite
+ * @version 1.0
+ * @since 1.0
+ */
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,5 +1,27 @@
 package com.nnk.springboot.services;
 
+/**
+ * Tests unitaires pour le CurvePointService.
+ * 
+ * <p>Cette classe de test valide la logique métier du service de gestion des points de courbe (CurvePoint),
+ * en testant les opérations CRUD, la validation des données financières et la gestion des erreurs
+ * dans un contexte d'intégration avec la base de données.</p>
+ * 
+ * <p>Couverture des tests :</p>
+ * <ul>
+ *   <li><strong>Création</strong> : Ajout de nouveaux points de courbe avec validation</li>
+ *   <li><strong>Lecture</strong> : Récupération par ID et liste complète</li>
+ *   <li><strong>Mise à jour</strong> : Modification des points existants</li>
+ *   <li><strong>Suppression</strong> : Suppression avec vérification d'existence</li>
+ *   <li><strong>Gestion des erreurs</strong> : Entités introuvables, validation</li>
+ *   <li><strong>Contraintes métier</strong> : Validation des courbes financières</li>
+ * </ul>
+ * 
+ * @author Poseidon Trading App Test Suite
+ * @version 1.0
+ * @since 1.0
+ */
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;

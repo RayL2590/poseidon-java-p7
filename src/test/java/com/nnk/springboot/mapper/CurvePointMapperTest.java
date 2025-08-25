@@ -1,5 +1,27 @@
 package com.nnk.springboot.mapper;
 
+/**
+ * Tests unitaires pour le CurvePointMapper.
+ * 
+ * <p>Cette classe de test valide la conversion bidirectionnelle entre les entités CurvePoint
+ * et les DTOs CurvePointDTO, en vérifiant le mapping correct de tous les champs,
+ * la gestion des valeurs null, et les fonctionnalités spécifiques aux points de courbe financiers.</p>
+ * 
+ * <p>Couverture des tests :</p>
+ * <ul>
+ *   <li><strong>Mapping complet</strong> : Tous les champs entité ↔ DTO</li>
+ *   <li><strong>Gestion des nulls</strong> : Protection contre les NPE</li>
+ *   <li><strong>Conversion round-trip</strong> : Intégrité des données</li>
+ *   <li><strong>Données financières</strong> : Validation des valeurs de courbe</li>
+ *   <li><strong>Méthodes spécifiques</strong> : updateEntityFromDTO, createDefaultForCurve</li>
+ *   <li><strong>Timestamps</strong> : Gestion des dates d'analyse</li>
+ * </ul>
+ * 
+ * @author Poseidon Trading App Test Suite
+ * @version 1.0
+ * @since 1.0
+ */
+
 import com.nnk.springboot.domain.CurvePoint;
 import com.nnk.springboot.dto.CurvePointDTO;
 import org.junit.jupiter.api.BeforeEach;

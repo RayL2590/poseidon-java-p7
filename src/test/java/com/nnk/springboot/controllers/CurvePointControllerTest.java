@@ -1,5 +1,29 @@
 package com.nnk.springboot.controllers;
 
+/**
+ * Tests unitaires pour le CurvePointController.
+ * 
+ * <p>Cette classe de test valide le comportement du contrôleur REST pour les points de courbe (CurvePoint),
+ * en testant les opérations CRUD via les endpoints HTTP et en vérifiant la gestion des erreurs,
+ * la sécurité et la validation des données financières.</p>
+ * 
+ * <p>Couverture des tests :</p>
+ * <ul>
+ *   <li><strong>GET /curvePoint</strong> : Affichage de la liste des points de courbe</li>
+ *   <li><strong>GET /curvePoint/add</strong> : Formulaire d'ajout de point de courbe</li>
+ *   <li><strong>POST /curvePoint/validate</strong> : Création d'un nouveau point</li>
+ *   <li><strong>GET /curvePoint/update/{id}</strong> : Formulaire de modification</li>
+ *   <li><strong>POST /curvePoint/update/{id}</strong> : Mise à jour d'un point</li>
+ *   <li><strong>GET /curvePoint/delete/{id}</strong> : Suppression d'un point</li>
+ *   <li><strong>Validation des données</strong> : Gestion des erreurs de validation</li>
+ *   <li><strong>Gestion des erreurs</strong> : Cas d'entités introuvables</li>
+ * </ul>
+ * 
+ * @author Poseidon Trading App Test Suite
+ * @version 1.0
+ * @since 1.0
+ */
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;

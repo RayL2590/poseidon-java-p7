@@ -1,5 +1,29 @@
 package com.nnk.springboot.controllers;
 
+/**
+ * Tests unitaires pour le BidListController.
+ * 
+ * <p>Cette classe de test valide le comportement du contrôleur REST pour les enchères (BidList),
+ * en testant les opérations CRUD via les endpoints HTTP et en vérifiant la gestion des erreurs,
+ * la sécurité et la validation des données.</p>
+ * 
+ * <p>Couverture des tests :</p>
+ * <ul>
+ *   <li><strong>GET /bidList</strong> : Affichage de la liste des enchères</li>
+ *   <li><strong>GET /bidList/add</strong> : Formulaire d'ajout d'enchère</li>
+ *   <li><strong>POST /bidList/validate</strong> : Création d'une nouvelle enchère</li>
+ *   <li><strong>GET /bidList/update/{id}</strong> : Formulaire de modification</li>
+ *   <li><strong>POST /bidList/update/{id}</strong> : Mise à jour d'une enchère</li>
+ *   <li><strong>GET /bidList/delete/{id}</strong> : Suppression d'une enchère</li>
+ *   <li><strong>Validation des données</strong> : Gestion des erreurs de validation</li>
+ *   <li><strong>Gestion des erreurs</strong> : Cas d'entités introuvables</li>
+ * </ul>
+ * 
+ * @author Poseidon Trading App Test Suite
+ * @version 1.0
+ * @since 1.0
+ */
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;

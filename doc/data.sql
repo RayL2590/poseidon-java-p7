@@ -1,4 +1,4 @@
-CREATE TABLE BidList (
+CREATE TABLE bid_list (
   BidListId tinyint(4) NOT NULL AUTO_INCREMENT,
   account VARCHAR(30) NOT NULL,
   type VARCHAR(30) NOT NULL,
@@ -24,7 +24,7 @@ CREATE TABLE BidList (
   PRIMARY KEY (BidListId)
 );
 
-CREATE TABLE Trade (
+CREATE TABLE trade (
   TradeId tinyint(4) NOT NULL AUTO_INCREMENT,
   account VARCHAR(30) NOT NULL,
   type VARCHAR(30) NOT NULL,
@@ -50,7 +50,7 @@ CREATE TABLE Trade (
   PRIMARY KEY (TradeId)
 );
 
-CREATE TABLE CurvePoint (
+CREATE TABLE curve_point (
   Id tinyint(4) NOT NULL AUTO_INCREMENT,
   CurveId tinyint,
   asOfDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -61,7 +61,7 @@ CREATE TABLE CurvePoint (
   PRIMARY KEY (Id)
 );
 
-CREATE TABLE Rating (
+CREATE TABLE rating (
   Id tinyint(4) NOT NULL AUTO_INCREMENT,
   moodysRating VARCHAR(125),
   sandPRating VARCHAR(125),
@@ -71,7 +71,7 @@ CREATE TABLE Rating (
   PRIMARY KEY (Id)
 );
 
-CREATE TABLE RuleName (
+CREATE TABLE rule_name (
   Id tinyint(4) NOT NULL AUTO_INCREMENT,
   name VARCHAR(125),
   description VARCHAR(125),
@@ -83,7 +83,7 @@ CREATE TABLE RuleName (
   PRIMARY KEY (Id)
 );
 
-CREATE TABLE Users (
+CREATE TABLE users (
   Id tinyint(4) NOT NULL AUTO_INCREMENT,
   username VARCHAR(125),
   password VARCHAR(125),
@@ -93,5 +93,5 @@ CREATE TABLE Users (
   PRIMARY KEY (Id)
 );
 
-insert into Users(fullname, username, password, role) values("Administrator", "useryan", "$2y$10$jG2oty3FicMOKA.ej0wfIeHtJdTmSlZjf1i3iHEHwGGLxCLRerxUe", "ADMIN"); --FrI%CPl3bBW#!
-insert into Users(fullname, username, password, role) values("User", "adminryan", "$2y$10$jG2oty3FicMOKA.ej0wfIeHtJdTmSlZjf1i3iHEHwGGLxCLRerxUe", "USER");
+insert into users(fullname, username, password, role) values("Administrator", "useryan", "$2y$10$jG2oty3FicMOKA.ej0wfIeHtJdTmSlZjf1i3iHEHwGGLxCLRerxUe", "ADMIN"); --FrI%CPl3bBW#!
+insert into users(fullname, username, password, role) values("User", "adminryan", "$2y$10$jG2oty3FicMOKA.ej0wfIeHtJdTmSlZjf1i3iHEHwGGLxCLRerxUe", "USER");

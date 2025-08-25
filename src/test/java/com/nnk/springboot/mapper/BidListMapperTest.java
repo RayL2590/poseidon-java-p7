@@ -1,5 +1,27 @@
 package com.nnk.springboot.mapper;
 
+/**
+ * Tests unitaires pour le BidListMapper.
+ * 
+ * <p>Cette classe de test valide la conversion bidirectionnelle entre les entités BidList
+ * et les DTOs BidListDTO, en vérifiant le mapping correct de tous les champs,
+ * la gestion des valeurs null, et les fonctionnalités spécifiques aux enchères financières.</p>
+ * 
+ * <p>Couverture des tests :</p>
+ * <ul>
+ *   <li><strong>Mapping complet</strong> : Tous les champs entité ↔ DTO</li>
+ *   <li><strong>Gestion des nulls</strong> : Protection contre les NPE</li>
+ *   <li><strong>Conversion round-trip</strong> : Intégrité des données</li>
+ *   <li><strong>Données financières</strong> : Validation des montants et quantités</li>
+ *   <li><strong>Méthodes spécifiques</strong> : updateEntityFromDTO, createDefaultForAccount</li>
+ *   <li><strong>Timestamps</strong> : Gestion des dates de création/révision</li>
+ * </ul>
+ * 
+ * @author Poseidon Trading App Test Suite
+ * @version 1.0
+ * @since 1.0
+ */
+
 import com.nnk.springboot.domain.BidList;
 import com.nnk.springboot.dto.BidListDTO;
 import org.junit.jupiter.api.Test;

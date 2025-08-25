@@ -753,7 +753,6 @@ class RatingMapperTest {
         // When - Execution de nombreuses conversions
         for (int i = 0; i < 1000; i++) {
             RatingDTO dto = ratingMapper.toDTO(testEntity);
-            Rating entity = ratingMapper.toEntity(dto);
             ratingMapper.updateEntityFromDTO(testEntity, dto);
         }
 

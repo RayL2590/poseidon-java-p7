@@ -1,5 +1,27 @@
 package com.nnk.springboot.services;
 
+/**
+ * Tests unitaires pour le RatingService.
+ * 
+ * <p>Cette classe de test valide la logique métier du service de gestion des notations financières (Rating),
+ * en testant les opérations CRUD, la validation des données de notation et la gestion des erreurs
+ * dans un contexte d'intégration avec la base de données.</p>
+ * 
+ * <p>Couverture des tests :</p>
+ * <ul>
+ *   <li><strong>Création</strong> : Ajout de nouvelles notations avec validation</li>
+ *   <li><strong>Lecture</strong> : Récupération par ID et liste complète</li>
+ *   <li><strong>Mise à jour</strong> : Modification des notations existantes</li>
+ *   <li><strong>Suppression</strong> : Suppression avec vérification d'existence</li>
+ *   <li><strong>Gestion des erreurs</strong> : Entités introuvables, validation</li>
+ *   <li><strong>Contraintes métier</strong> : Validation des formats de notation</li>
+ * </ul>
+ * 
+ * @author Poseidon Trading App Test Suite
+ * @version 1.0
+ * @since 1.0
+ */
+
 import com.nnk.springboot.domain.Rating;
 import com.nnk.springboot.repositories.RatingRepository;
 import org.junit.jupiter.api.BeforeEach;
