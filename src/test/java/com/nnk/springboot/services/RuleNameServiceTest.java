@@ -219,4 +219,236 @@ class RuleNameServiceTest {
         List<RuleName> result = ruleNameService.findRecentRules(0);
         assertTrue(result.isEmpty());
     }
+
+    // Tests pour la normalisation des données
+    @Test
+    void save_shouldNormalizeAllFields() {
+        RuleName rule = new RuleName();
+        rule.setName("  TestRule  ");
+        rule.setDescription("  test description  ");
+        rule.setJson("  {}  ");
+        rule.setTemplate("  template content  ");
+        rule.setSqlStr("  SELECT *  ");
+        rule.setSqlPart("  FROM table  ");
+        
+        when(ruleNameRepository.findByName("TestRule")).thenReturn(Optional.empty());
+        when(ruleNameRepository.save(any())).thenReturn(rule);
+        
+        ruleNameService.save(rule);
+        
+        assertEquals("TestRule", rule.getName());
+        assertEquals("test description", rule.getDescription());
+        assertEquals("{}", rule.getJson());
+        assertEquals("template content", rule.getTemplate());
+        assertEquals("SELECT *", rule.getSqlStr());
+        assertEquals("FROM table", rule.getSqlPart());
+    }
+
+    @Test
+    void save_shouldConvertEmptyStringsToNull() {
+        RuleName rule = new RuleName();
+        rule.setName("TestRule");
+        rule.setDescription("   ");  // Espaces seulement
+        rule.setJson("");            // Chaîne vide
+        rule.setTemplate("  ");      // Espaces
+        rule.setSqlStr("");
+        rule.setSqlPart("   ");
+        
+        when(ruleNameRepository.findByName("TestRule")).thenReturn(Optional.empty());
+        when(ruleNameRepository.save(any())).thenReturn(rule);
+        
+        ruleNameService.save(rule);
+        
+        assertEquals("TestRule", rule.getName());
+        assertNull(rule.getDescription());
+        assertNull(rule.getJson());
+        assertNull(rule.getTemplate());
+        assertNull(rule.getSqlStr());
+        assertNull(rule.getSqlPart());
+    }
+
+    // Tests pour la validation JSON
+    @Test
+    void save_shouldAcceptValidJson() {
+        RuleName rule = new RuleName();
+        rule.setName("JsonRule");
+        rule.setJson("{\"key\": \"value\"}");
+        
+        when(ruleNameRepository.findByName("JsonRule")).thenReturn(Optional.empty());
+        when(ruleNameRepository.save(any())).thenReturn(rule);
+        
+        assertDoesNotThrow(() -> ruleNameService.save(rule));
+    }
+
+    @Test
+    void save_shouldRejectInvalidJson() {
+        RuleName rule = new RuleName();
+        rule.setName("InvalidJson");
+        rule.setJson("{invalid json}");
+        
+        Exception ex = assertThrows(IllegalArgumentException.class, () -> ruleNameService.save(rule));
+        assertTrue(ex.getMessage().contains("Invalid JSON configuration"));
+    }
+
+    @Test
+    void save_shouldRejectTooLongJson() {
+        RuleName rule = new RuleName();
+        rule.setName("LongJson");
+        // Créer un JSON valide mais explicitement trop long (130 caractères pour être sûr)
+        String longString = "a".repeat(118); // 118 caractères
+        String jsonString = "{\"key\":\"" + longString + "\"}"; // {"key":"aaa..."} = 9 + 118 = 127 caractères
+        rule.setJson(jsonString);
+        
+        // Debug: vérification exacte de la longueur
+        System.out.println("JSON length: " + jsonString.length());
+        System.out.println("JSON content: " + jsonString.substring(0, Math.min(50, jsonString.length())) + "...");
+        
+        Exception ex = assertThrows(IllegalArgumentException.class, () -> ruleNameService.save(rule));
+        assertTrue(ex.getMessage().contains("JSON configuration cannot exceed 125 characters"));
+    }
+
+    // Tests pour la validation des templates
+    @Test
+    void save_shouldAcceptValidTemplate() {
+        RuleName rule = new RuleName();
+        rule.setName("TemplateRule");
+        rule.setTemplate("Hello {name}, your balance is {balance}");
+        
+        when(ruleNameRepository.findByName("TemplateRule")).thenReturn(Optional.empty());
+        when(ruleNameRepository.save(any())).thenReturn(rule);
+        
+        assertDoesNotThrow(() -> ruleNameService.save(rule));
+    }
+
+    @Test
+    void save_shouldRejectTemplateWithUnbalancedBraces() {
+        RuleName rule = new RuleName();
+        rule.setName("UnbalancedTemplate");
+        rule.setTemplate("Hello {name, your balance is {balance}"); // Accolade fermante manquante
+        
+        Exception ex = assertThrows(IllegalArgumentException.class, () -> ruleNameService.save(rule));
+        assertTrue(ex.getMessage().contains("unbalanced placeholders"));
+    }
+
+    @Test
+    void save_shouldRejectTooLongTemplate() {
+        RuleName rule = new RuleName();
+        rule.setName("LongTemplate");
+        rule.setTemplate("x".repeat(513)); // Plus de 512 caractères
+        
+        Exception ex = assertThrows(IllegalArgumentException.class, () -> ruleNameService.save(rule));
+        assertTrue(ex.getMessage().contains("Template cannot exceed 512 characters"));
+    }
+
+    // Tests pour la validation SQL
+    @Test
+    void save_shouldRejectDangerousSql() {
+        RuleName rule = new RuleName();
+        rule.setName("DangerousSQL");
+        rule.setSqlStr("SELECT * FROM users WHERE 1=1; DROP TABLE users;");
+        
+        Exception ex = assertThrows(IllegalArgumentException.class, () -> ruleNameService.save(rule));
+        assertTrue(ex.getMessage().contains("potentially dangerous SQL patterns"));
+    }
+
+    @Test
+    void save_shouldRejectSuspiciousSqlWithSemicolon() {
+        RuleName rule = new RuleName();
+        rule.setName("SuspiciousSQL");
+        rule.setSqlPart("field1; DROP TABLE");
+        
+        Exception ex = assertThrows(IllegalArgumentException.class, () -> ruleNameService.save(rule));
+        assertTrue(ex.getMessage().contains("suspicious semicolon usage"));
+    }
+
+    @Test
+    void save_shouldAcceptValidSql() {
+        RuleName rule = new RuleName();
+        rule.setName("ValidSQL");
+        rule.setSqlStr("column_name");
+        rule.setSqlPart("table_alias");
+        
+        when(ruleNameRepository.findByName("ValidSQL")).thenReturn(Optional.empty());
+        when(ruleNameRepository.save(any())).thenReturn(rule);
+        
+        assertDoesNotThrow(() -> ruleNameService.save(rule));
+    }
+
+    // Tests pour findByComponentType - cas manquants
+    @Test
+    void findByComponentType_shouldReturnTemplateRules() {
+        RuleName rule = new RuleName();
+        rule.setTemplate("template");
+        when(ruleNameRepository.findByTemplateIsNotNullOrderByNameAsc()).thenReturn(List.of(rule));
+        
+        List<RuleName> result = ruleNameService.findByComponentType("TEMPLATE");
+        assertEquals(1, result.size());
+    }
+
+    @Test
+    void findByComponentType_shouldReturnSqlRules() {
+        RuleName rule = new RuleName();
+        rule.setSqlStr("sql");
+        when(ruleNameRepository.findBySqlStrIsNotNullOrSqlPartIsNotNullOrderByNameAsc()).thenReturn(List.of(rule));
+        
+        List<RuleName> result = ruleNameService.findByComponentType("SQL");
+        assertEquals(1, result.size());
+    }
+
+    @Test
+    void findByComponentType_shouldReturnCompleteRules() {
+        RuleName rule = new RuleName();
+        when(ruleNameRepository.findCompleteRules()).thenReturn(List.of(rule));
+        
+        List<RuleName> result = ruleNameService.findByComponentType("COMPLETE");
+        assertEquals(1, result.size());
+    }
+
+    @Test
+    void findByComponentType_shouldReturnEmptyForBlankType() {
+        List<RuleName> result = ruleNameService.findByComponentType("  ");
+        assertTrue(result.isEmpty());
+    }
+
+    // Tests supplémentaires pour findByKeyword
+    @Test
+    void findByKeyword_shouldReturnEmptyForBlankKeyword() {
+        List<RuleName> result = ruleNameService.findByKeyword("  ");
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void findByKeyword_shouldAvoidDuplicates() {
+        RuleName rule = new RuleName();
+        rule.setName("TestRule");
+        rule.setDescription("Test description");
+        
+        // Le même objet dans les deux listes
+        when(ruleNameRepository.findByNameContainingIgnoreCaseOrderByNameAsc("Test")).thenReturn(List.of(rule));
+        when(ruleNameRepository.findByDescriptionContainingIgnoreCaseOrderByNameAsc("Test")).thenReturn(List.of(rule));
+        
+        List<RuleName> result = ruleNameService.findByKeyword("Test");
+        assertEquals(1, result.size()); // Pas de doublons
+    }
+
+    // Test pour la validation de longueur de description
+    @Test
+    void save_shouldRejectTooLongDescription() {
+        RuleName rule = new RuleName();
+        rule.setName("LongDesc");
+        rule.setDescription("x".repeat(126)); // Plus de 125 caractères
+        
+        Exception ex = assertThrows(IllegalArgumentException.class, () -> ruleNameService.save(rule));
+        assertTrue(ex.getMessage().contains("Description cannot exceed 125 characters"));
+    }
+
+    // Test pour la validation de longueur de nom
+    @Test
+    void save_shouldRejectTooLongName() {
+        RuleName rule = new RuleName();
+        rule.setName("x".repeat(126)); // Plus de 125 caractères
+        
+        Exception ex = assertThrows(IllegalArgumentException.class, () -> ruleNameService.save(rule));
+        assertTrue(ex.getMessage().contains("Rule name cannot exceed 125 characters"));
+    }
 }

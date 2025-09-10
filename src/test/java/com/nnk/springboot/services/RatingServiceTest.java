@@ -331,9 +331,9 @@ class RatingServiceTest {
         // Given - Notation existante avec modification
         Rating existingRating = new Rating();
         existingRating.setId(1);
-        existingRating.setMoodysRating("A1");      // Modification
-        existingRating.setSandPRating("A+");       // Modification
-        existingRating.setFitchRating("A+");       // Modification
+        existingRating.setMoodysRating("A1");      
+        existingRating.setSandPRating("A+");       
+        existingRating.setFitchRating("A+");       
         existingRating.setOrderNumber(7);          // Garde le meme ordre
         
         when(ratingRepository.findByOrderNumber(7)).thenReturn(Optional.of(validRating)); // Meme rating

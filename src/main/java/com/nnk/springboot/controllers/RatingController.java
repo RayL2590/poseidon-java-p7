@@ -305,14 +305,6 @@ public class RatingController {
         
         try {
             validateId(id);
-            
-            // Log de la notation avant suppression pour audit
-            ratingService.findById(id).ifPresent(rating -> {
-                logger.info("Deleting Rating - ID: {}, Moody's: {}, S&P: {}, Fitch: {}, Order: {}", 
-                           rating.getId(), rating.getMoodysRating(), rating.getSandPRating(), 
-                           rating.getFitchRating(), rating.getOrderNumber());
-            });
-            
             ratingService.deleteById(id);
             
             logger.info("Successfully deleted Rating: ID={}", id);

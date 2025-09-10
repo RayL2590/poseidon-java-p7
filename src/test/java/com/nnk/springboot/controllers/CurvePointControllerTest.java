@@ -281,7 +281,7 @@ class CurvePointControllerTest {
     void validate_WithInvalidCurveId_ShouldReturnAddViewWithErrors() throws Exception {
         // When & Then - CurveId doit être positif
         mockMvc.perform(post("/curvePoint/validate")
-                .param("curveId", "0")        // Invalid: must be positive
+                .param("curveId", "0")        // Invalide : doit être positif
                 .param("term", "1.0000")
                 .param("value", "2.5000"))
                 .andExpect(status().isOk())

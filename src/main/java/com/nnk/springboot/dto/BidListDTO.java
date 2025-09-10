@@ -22,7 +22,7 @@ import jakarta.validation.constraints.*;
  * 
  * <p>Validation des données financières :</p>
  * <ul>
- *   <li>Champs obligatoires : account, type (essentiels pour le trading)</li>
+ *   <li>Champs obligatoires : account, type, bidQuantity (essentiels pour le trading)</li>
  *   <li>Valeurs numériques : Positives ou nulles, format décimal contrôlé</li>
  *   <li>Longueurs de chaînes : Limitées selon les contraintes métier</li>
  *   <li>Messages d'erreur : Explicites pour guider l'utilisateur</li>
@@ -91,6 +91,7 @@ public class BidListDTO {
      * 
      * <p>Exemple : 1500.75 (mille cinq cents unités et soixante-quinze centièmes)</p>
      */
+    @NotNull(message = "Bid quantity is mandatory")
     @DecimalMin(value = "0.0", inclusive = true, message = "Bid quantity must be positive or zero")
     @Digits(integer = 10, fraction = 2, message = "Bid quantity must be a valid number with max 2 decimal places")
     private Double bidQuantity;

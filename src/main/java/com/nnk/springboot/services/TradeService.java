@@ -7,6 +7,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -53,11 +56,13 @@ import java.util.regex.Pattern;
 @Transactional
 public class TradeService implements ITradeService {
 
+    private static final Logger logger = LoggerFactory.getLogger(TradeService.class);
+
     @Autowired
     private TradeRepository tradeRepository;
     
-    // Pattern pour la validation des comptes (lettres majuscules, chiffres, underscores, tirets)
-    private static final Pattern ACCOUNT_PATTERN = Pattern.compile("^[A-Z0-9][A-Z0-9_\\-]*$");
+    // Pattern pour la validation des comptes (lettres, chiffres, underscores, tirets - format financier standard)
+    private static final Pattern ACCOUNT_PATTERN = Pattern.compile("^[A-Za-z0-9][A-Za-z0-9_\\-]*$");
     
     // Pattern pour la validation des types de transaction
     private static final Pattern TYPE_PATTERN = Pattern.compile("^[A-Z][A-Z0-9_]*$");
@@ -259,7 +264,7 @@ public class TradeService implements ITradeService {
         
         if (!ACCOUNT_PATTERN.matcher(trimmedAccount).matches()) {
             throw new IllegalArgumentException(
-                "Account must start with alphanumeric character and contain only uppercase letters, digits, underscores, and hyphens");
+                "Account must start with alphanumeric character and contain only letters, digits, underscores, and hyphens");
         }
     }
 
@@ -399,8 +404,7 @@ public class TradeService implements ITradeService {
             String status = trade.getStatus().toUpperCase();
             List<String> validStatuses = List.of("PENDING", "EXECUTED", "CANCELLED", "FAILED", "SETTLED");
             if (!validStatuses.contains(status)) {
-                // Log warning mais ne rejette pas - permet l'extensibilité
-                System.out.println("Warning: Non-standard status '" + status + "' used in trade");
+                logger.warn("Warning: Non-standard status '{}' used in trade", status);
             }
         }
         
@@ -434,7 +438,7 @@ public class TradeService implements ITradeService {
      */
     private void normalizeTradeData(Trade trade) {
         if (trade.getAccount() != null) {
-            trade.setAccount(trade.getAccount().trim().toUpperCase());
+            trade.setAccount(trade.getAccount().trim());
         }
         
         if (trade.getType() != null) {

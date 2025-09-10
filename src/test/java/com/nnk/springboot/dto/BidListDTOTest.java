@@ -134,6 +134,24 @@ class BidListDTOTest {
     }
 
     @Test
+    void validation_WithNullBidQuantity_ShouldFail() {
+        // Given
+        BidListDTO dto = new BidListDTO();
+        dto.setAccount("ACCOUNT_001");
+        dto.setType("EQUITY");
+        dto.setBidQuantity(null);  // Null value
+
+        // When
+        Set<ConstraintViolation<BidListDTO>> violations = validator.validate(dto);
+
+        // Then
+        assertFalse(violations.isEmpty(), "Null bid quantity should produce validation error");
+        assertTrue(violations.stream()
+                .anyMatch(v -> v.getMessage().equals("Bid quantity is mandatory")),
+                "Should contain bid quantity mandatory error message");
+    }
+
+    @Test
     void validation_WithNegativeBidQuantity_ShouldFail() {
         // Given
         BidListDTO dto = new BidListDTO();

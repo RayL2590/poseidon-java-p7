@@ -14,6 +14,7 @@ com\nnk\springboot\repositories\UserRepository.class
 com\nnk\springboot\controllers\UserController.class
 com\nnk\springboot\controllers\TradeController.class
 com\nnk\springboot\domain\RuleName.class
+com\nnk\springboot\mapper\UserMapper.class
 com\nnk\springboot\mapper\BidListMapper.class
 com\nnk\springboot\domain\CurvePoint.class
 com\nnk\springboot\mapper\CurvePointMapper.class
@@ -30,6 +31,7 @@ com\nnk\springboot\dto\BidListDTO.class
 com\nnk\springboot\repositories\TradeRepository.class
 com\nnk\springboot\repositories\BidListRepository.class
 com\nnk\springboot\services\IRuleNameService.class
+com\nnk\springboot\services\UserService.class
 com\nnk\springboot\config\GlobalExceptionHandler.class
 com\nnk\springboot\dto\RatingDTO.class
 com\nnk\springboot\services\BidListService.class
@@ -41,5 +43,7 @@ com\nnk\springboot\controllers\BidListController.class
 com\nnk\springboot\repositories\CurvePointRepository.class
 com\nnk\springboot\services\IRatingService.class
 com\nnk\springboot\services\ITradeService.class
+com\nnk\springboot\services\IUserService.class
 com\nnk\springboot\dto\TradeDTO.class
 com\nnk\springboot\repositories\RuleNameRepository.class
+com\nnk\springboot\dto\UserDTO.class

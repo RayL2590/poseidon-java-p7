@@ -310,7 +310,7 @@ class RatingControllerTest {
     
     @Test
     void validate_WithValidationErrors_ShouldReturnAddView() throws Exception {
-        // When & Then - Order number négatif (violation de @Min(1))
+        // When & Then - Numéro d'ordre négatif (violation de @Min(1))
         mockMvc.perform(post("/rating/validate")
                 .param("moodysRating", "Aaa")
                 .param("sandPRating", "AAA")

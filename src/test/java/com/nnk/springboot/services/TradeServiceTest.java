@@ -249,6 +249,14 @@ public class TradeServiceTest {
         invalidTrade.setBuyPrice(25.0);
 
         assertThrows(IllegalArgumentException.class, () -> tradeService.save(invalidTrade));
+        
+        // Test avec caractères non autorisés
+        Trade invalidTrade2 = new Trade("account@test", "BUY"); // Contient @
+        invalidTrade2.setBuyQuantity(100.0);
+        invalidTrade2.setBuyPrice(25.0);
+
+        assertThrows(IllegalArgumentException.class, () -> tradeService.save(invalidTrade2));
+        
         verify(tradeRepository, never()).save(any());
     }
 
@@ -578,5 +586,236 @@ public class TradeServiceTest {
 
         assertDoesNotThrow(() -> tradeService.save(sellTrade));
         verify(tradeRepository).save(sellTrade);
+    }
+
+    @Test
+    @DisplayName("Transaction avec achat et vente simultanés doit être valide")
+    void testBuyAndSellTransaction() {
+        Trade mixedTrade = new Trade("MIXED_ACC", "MIXED");
+        mixedTrade.setBuyQuantity(200.0);
+        mixedTrade.setBuyPrice(25.0);
+        mixedTrade.setSellQuantity(150.0);
+        mixedTrade.setSellPrice(30.0);
+        
+        when(tradeRepository.save(any(Trade.class))).thenReturn(mixedTrade);
+
+        assertDoesNotThrow(() -> tradeService.save(mixedTrade));
+        verify(tradeRepository).save(mixedTrade);
+    }
+
+    @Test
+    @DisplayName("Normalisation complète des champs doit fonctionner")
+    void testCompleteDataNormalization() {
+        Trade tradeToNormalize = new Trade("  test_Account123  ", "  BUY  ");
+        tradeToNormalize.setBuyQuantity(100.0);
+        tradeToNormalize.setBuyPrice(25.0);
+        tradeToNormalize.setStatus("  ACTIVE  ");
+        tradeToNormalize.setSecurity("  AAPL  ");
+        tradeToNormalize.setTrader("  trader001  ");
+        tradeToNormalize.setBenchmark("  benchmark1  ");
+        tradeToNormalize.setBook("  book1  ");
+        tradeToNormalize.setCreationName("  creator  ");
+        tradeToNormalize.setRevisionName("  revisor  ");
+        tradeToNormalize.setDealName("  deal123  ");
+        tradeToNormalize.setDealType("  spot  ");
+        tradeToNormalize.setSourceListId("  src001  ");
+        tradeToNormalize.setSide("  buy  ");
+        
+        when(tradeRepository.save(any(Trade.class))).thenReturn(tradeToNormalize);
+
+        tradeService.save(tradeToNormalize);
+
+        // Vérification des normalisations - Account garde sa casse originale après trim
+        assertEquals("test_Account123", tradeToNormalize.getAccount());
+        assertEquals("BUY", tradeToNormalize.getType());
+        assertEquals("ACTIVE", tradeToNormalize.getStatus());
+        assertEquals("AAPL", tradeToNormalize.getSecurity());
+        assertEquals("trader001", tradeToNormalize.getTrader());
+        assertEquals("benchmark1", tradeToNormalize.getBenchmark());
+        assertEquals("book1", tradeToNormalize.getBook());
+        assertEquals("creator", tradeToNormalize.getCreationName());
+        assertEquals("revisor", tradeToNormalize.getRevisionName());
+        assertEquals("deal123", tradeToNormalize.getDealName());
+        assertEquals("spot", tradeToNormalize.getDealType());
+        assertEquals("src001", tradeToNormalize.getSourceListId());
+        assertEquals("BUY", tradeToNormalize.getSide());
+        
+        verify(tradeRepository).save(tradeToNormalize);
+    }
+
+    @Test
+    @DisplayName("Normalisation des chaînes vides doit les convertir en null")
+    void testNormalizationEmptyStringsToNull() {
+        Trade tradeWithEmptyStrings = new Trade("TEST_ACC", "BUY");
+        tradeWithEmptyStrings.setBuyQuantity(100.0);
+        tradeWithEmptyStrings.setBuyPrice(25.0);
+        tradeWithEmptyStrings.setStatus("   ");  // Espaces seulement
+        tradeWithEmptyStrings.setSecurity("");   // Chaîne vide
+        tradeWithEmptyStrings.setTrader("  ");   // Espaces
+        
+        when(tradeRepository.save(any(Trade.class))).thenReturn(tradeWithEmptyStrings);
+
+        tradeService.save(tradeWithEmptyStrings);
+
+        assertNull(tradeWithEmptyStrings.getStatus());
+        assertNull(tradeWithEmptyStrings.getSecurity());
+        assertNull(tradeWithEmptyStrings.getTrader());
+        
+        verify(tradeRepository).save(tradeWithEmptyStrings);
+    }
+
+    @Test
+    @DisplayName("Validation amounts - prix sans quantité correspondante doit lever exception")
+    void testValidateAmountsPriceWithoutQuantity() {
+        // Test buyPrice sans buyQuantity
+        Trade invalidTrade1 = new Trade("TEST_ACC", "BUY");
+        invalidTrade1.setBuyPrice(25.0);
+        invalidTrade1.setBuyQuantity(null);
+        
+        assertThrows(IllegalArgumentException.class, () -> tradeService.save(invalidTrade1));
+        
+        // Test sellPrice sans sellQuantity
+        Trade invalidTrade2 = new Trade("TEST_ACC", "SELL");
+        invalidTrade2.setSellPrice(30.0);
+        invalidTrade2.setSellQuantity(null);
+        
+        assertThrows(IllegalArgumentException.class, () -> tradeService.save(invalidTrade2));
+        
+        verify(tradeRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Validation amounts - quantité zéro doit lever exception")
+    void testValidateAmountsZeroQuantity() {
+        Trade invalidTrade1 = new Trade("TEST_ACC", "BUY");
+        invalidTrade1.setBuyQuantity(0.0);  // Quantité zéro
+        invalidTrade1.setBuyPrice(25.0);
+        
+        assertThrows(IllegalArgumentException.class, () -> tradeService.save(invalidTrade1));
+        
+        Trade invalidTrade2 = new Trade("TEST_ACC", "SELL");
+        invalidTrade2.setSellQuantity(0.0);  // Quantité zéro
+        invalidTrade2.setSellPrice(30.0);
+        
+        assertThrows(IllegalArgumentException.class, () -> tradeService.save(invalidTrade2));
+        
+        verify(tradeRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Validation amounts - prix zéro doit lever exception")
+    void testValidateAmountsZeroPrice() {
+        Trade invalidTrade1 = new Trade("TEST_ACC", "BUY");
+        invalidTrade1.setBuyQuantity(100.0);
+        invalidTrade1.setBuyPrice(0.0);  // Prix zéro
+        
+        assertThrows(IllegalArgumentException.class, () -> tradeService.save(invalidTrade1));
+        
+        Trade invalidTrade2 = new Trade("TEST_ACC", "SELL");
+        invalidTrade2.setSellQuantity(100.0);
+        invalidTrade2.setSellPrice(0.0);  // Prix zéro
+        
+        assertThrows(IllegalArgumentException.class, () -> tradeService.save(invalidTrade2));
+        
+        verify(tradeRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Validation amounts - au moins une opération requise")
+    void testValidateAmountsNoOperations() {
+        // Aucune quantité définie
+        Trade invalidTrade1 = new Trade("TEST_ACC", "BUY");
+        
+        assertThrows(IllegalArgumentException.class, () -> tradeService.save(invalidTrade1));
+        
+        // Quantités nulles
+        Trade invalidTrade2 = new Trade("TEST_ACC", "SELL");
+        invalidTrade2.setBuyQuantity(null);
+        invalidTrade2.setSellQuantity(null);
+        
+        assertThrows(IllegalArgumentException.class, () -> tradeService.save(invalidTrade2));
+        
+        verify(tradeRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Validation amounts - transaction buy seule valide")
+    void testValidateAmountsBuyOnly() {
+        Trade validTrade = new Trade("TEST_ACC", "BUY");
+        validTrade.setBuyQuantity(100.0);
+        validTrade.setBuyPrice(25.0);
+        // Pas de sell défini
+        
+        when(tradeRepository.save(any(Trade.class))).thenReturn(validTrade);
+        
+        assertDoesNotThrow(() -> tradeService.save(validTrade));
+        verify(tradeRepository).save(validTrade);
+    }
+
+    @Test
+    @DisplayName("Validation amounts - transaction sell seule valide")
+    void testValidateAmountsSellOnly() {
+        Trade validTrade = new Trade("TEST_ACC", "SELL");
+        validTrade.setSellQuantity(150.0);
+        validTrade.setSellPrice(30.0);
+        // Pas de buy défini
+        
+        when(tradeRepository.save(any(Trade.class))).thenReturn(validTrade);
+        
+        assertDoesNotThrow(() -> tradeService.save(validTrade));
+        verify(tradeRepository).save(validTrade);
+    }
+
+    @Test
+    @DisplayName("Validation des formats d'account autorisés")
+    void testValidAccountFormats() {
+        // Formats valides avec la nouvelle contrainte assouplie
+        String[] validAccounts = {
+            "TestAccount",      // Mixte majuscule/minuscule
+            "test_account",     // Minuscules avec underscore
+            "Account123",       // Avec chiffres
+            "acc-test",         // Avec tiret
+            "A1_test-123",      // Combinaison complète
+            "123account"        // Commence par chiffre
+        };
+
+        for (String account : validAccounts) {
+            Trade validTrade = new Trade(account, "BUY");
+            validTrade.setBuyQuantity(100.0);
+            validTrade.setBuyPrice(25.0);
+            
+            when(tradeRepository.save(any(Trade.class))).thenReturn(validTrade);
+            
+            assertDoesNotThrow(() -> tradeService.save(validTrade), 
+                "Account format '" + account + "' should be valid");
+        }
+        
+        verify(tradeRepository, times(validAccounts.length)).save(any(Trade.class));
+    }
+
+    @Test
+    @DisplayName("Validation des formats d'account invalides")
+    void testInvalidAccountFormats() {
+        // Formats invalides
+        String[] invalidAccounts = {
+            "_startWithUnderscore",     // Commence par underscore
+            "-startWithDash",           // Commence par tiret  
+            "account@test",             // Contient @
+            "account test",             // Contient espace
+            "account.test",             // Contient point
+            "account#test"              // Contient #
+        };
+
+        for (String account : invalidAccounts) {
+            Trade invalidTrade = new Trade(account, "BUY");
+            invalidTrade.setBuyQuantity(100.0);
+            invalidTrade.setBuyPrice(25.0);
+            
+            assertThrows(IllegalArgumentException.class, 
+                () -> tradeService.save(invalidTrade),
+                "Account format '" + account + "' should be invalid");
+        }
+        
+        verify(tradeRepository, never()).save(any(Trade.class));
     }
 }

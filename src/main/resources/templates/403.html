@@ -1,16 +1,132 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
 <head>
-      <title>Spring Boot</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accès Refusé - Poseidon Trading</title>
+    <link rel="stylesheet" type="text/css" href="/css/bootstrap.min.css">
+    <style>
+        .error-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .error-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            overflow: hidden;
+            max-width: 500px;
+            width: 100%;
+        }
+        .error-header {
+            background: #dc3545;
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .error-code {
+            font-size: 4rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .user-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-left: 4px solid #007bff;
+            margin: 20px 0;
+        }
+        .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+    </style>
 </head>
 <body>
-   <h3>Access Denied Exception</h3>
-   <div>
-	    Logged in user: <b th:inline="text"  class="user"> [[${#httpServletRequest.remoteUser}]] </b>
-	    <form th:action="@{/app-logout}" method="POST">
-	         <input type="submit" value="Logout"/>
-	    </form>
-   </div> 	 
-    <p class="error" th:text="${errorMsg}">Error</p>
+<div class="error-container">
+    <div class="error-card">
+        <!-- Header avec code d'erreur -->
+        <div class="error-header">
+            <div class="error-code">403</div>
+            <h2>Accès Refusé</h2>
+            <p class="mb-0">Vous n'avez pas les autorisations nécessaires pour accéder à cette ressource</p>
+        </div>
+        
+        <!-- Corps du message -->
+        <div class="p-4">
+            <!-- Message d'erreur personnalisé -->
+            <div th:if="${errorMsg}" class="alert alert-warning" role="alert">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span th:text="${errorMsg}">Erreur d'autorisation</span>
+            </div>
+            
+            <!-- Informations utilisateur -->
+            <div class="user-info" th:if="${#httpServletRequest != null && #httpServletRequest.remoteUser != null}">
+                <h6><i class="fas fa-user"></i> Utilisateur connecté :</h6>
+                <strong th:text="${#httpServletRequest.remoteUser}">Utilisateur inconnu</strong>
+            </div>
+            
+            <!-- Informations sur l'erreur -->
+            <div class="mb-4">
+                <h5>Que s'est-il passé ?</h5>
+                <p class="text-muted">
+                    Vous avez tenté d'accéder à une ressource pour laquelle vous n'avez pas 
+                    les droits nécessaires. Cette restriction fait partie des mesures de 
+                    sécurité de l'application Poseidon Trading.
+                </p>
+            </div>
+            
+            <!-- Suggestions d'actions -->
+            <div class="mb-4">
+                <h6>Que pouvez-vous faire ?</h6>
+                <ul class="list-unstyled">
+                    <li><i class="fas fa-check text-success"></i> Vérifier que vous êtes connecté avec le bon compte</li>
+                    <li><i class="fas fa-check text-success"></i> Contacter votre administrateur pour obtenir les droits</li>
+                    <li><i class="fas fa-check text-success"></i> Retourner aux pages que vous êtes autorisé à consulter</li>
+                </ul>
+            </div>
+            
+            <!-- Actions possibles -->
+            <div class="actions">
+                <!-- Bouton retour -->
+                <button onclick="history.back()" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Retour
+                </button>
+                
+                <!-- Bouton accueil -->
+                <a href="/" class="btn btn-primary">
+                    <i class="fas fa-home"></i> Accueil
+                </a>
+                
+                <!-- Bouton BidList (page principale) -->
+                <a href="/bidList/list" class="btn btn-outline-primary">
+                    <i class="fas fa-list"></i> Liste des Offres
+                </a>
+                
+                <!-- Bouton déconnexion -->
+                <form th:action="@{/logout}" method="POST" style="display: inline;">
+                    <button type="submit" class="btn btn-outline-danger">
+                        <i class="fas fa-sign-out-alt"></i> Se déconnecter
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="bg-light p-3 text-center text-muted">
+            <small>
+                <i class="fas fa-shield-alt"></i>
+                Poseidon Trading App - Sécurité renforcée
+            </small>
+        </div>
+    </div>
+</div>
+
+<!-- Font Awesome pour les icônes -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
 </body>
 </html>   

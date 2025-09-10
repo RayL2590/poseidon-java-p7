@@ -136,7 +136,6 @@ public class GlobalExceptionHandler implements ErrorController {
         logger.error("Error occurred - Status: {}, URI: {}, Message: {}", 
                     status, requestUri, errorMessage, (Throwable) exception);
         
-        // Ajout des informations au modèle
         if (status != null) {
             model.addAttribute("status", status.toString());
             

@@ -236,11 +236,218 @@ class RuleNameControllerTest {
     }
 
     @Test
+    void getRulesApi_shouldReturnFilteredList() {
+        RuleName rule = new RuleName();
+        RuleNameDTO dto = new RuleNameDTO();
+        when(ruleNameService.findByComponentType("JSON")).thenReturn(List.of(rule));
+        when(ruleNameMapper.toDTO(rule)).thenReturn(dto);
+
+        List<RuleNameDTO> result = controller.getRulesApi("json");
+        assertEquals(1, result.size());
+    }
+
+    @Test
+    void getRulesApi_shouldReturnEmptyListOnException() {
+        when(ruleNameService.findAll()).thenThrow(new RuntimeException("Database error"));
+
+        List<RuleNameDTO> result = controller.getRulesApi(null);
+        assertEquals(0, result.size());
+    }
+
+    @Test
     void handleGenericException_shouldReturnListView() {
         Exception e = new Exception("fail");
         String view = controller.handleGenericException(e, model);
         assertEquals("ruleName/list", view);
         verify(model).addAttribute(eq("errorMessage"), contains("fail"));
         verify(model).addAttribute(eq("ruleNames"), any());
+    }
+
+    @Test
+    void filterByComponent_shouldHandleAllCases() {
+        RuleName rule = new RuleName();
+        RuleNameDTO dto = new RuleNameDTO();
+        when(ruleNameMapper.toDTO(rule)).thenReturn(dto);
+
+        // Test template filter
+        when(ruleNameService.findByComponentType("TEMPLATE")).thenReturn(List.of(rule));
+        String view = controller.filterByComponent("template", model);
+        assertEquals("ruleName/list", view);
+        verify(model).addAttribute(eq("filterDescription"), eq("Rules with Templates"));
+
+        // Test sql filter
+        when(ruleNameService.findByComponentType("SQL")).thenReturn(List.of(rule));
+        view = controller.filterByComponent("sql", model);
+        assertEquals("ruleName/list", view);
+        verify(model).addAttribute(eq("filterDescription"), eq("Rules with SQL Components"));
+
+        // Test complete filter
+        when(ruleNameService.findByComponentType("COMPLETE")).thenReturn(List.of(rule));
+        view = controller.filterByComponent("complete", model);
+        assertEquals("ruleName/list", view);
+        verify(model).addAttribute(eq("filterDescription"), eq("Complete Rules (JSON + Template + SQL)"));
+
+        // Test all filter
+        when(ruleNameService.findAll()).thenReturn(List.of(rule));
+        view = controller.filterByComponent("all", model);
+        assertEquals("ruleName/list", view);
+        verify(model).addAttribute(eq("filterDescription"), eq("All Business Rules"));
+    }
+
+    @Test
+    void filterByComponent_shouldHandleException() {
+        when(ruleNameService.findByComponentType("JSON")).thenThrow(new RuntimeException("Database error"));
+
+        String view = controller.filterByComponent("json", model);
+        assertEquals("ruleName/list", view);
+        verify(model).addAttribute(eq("errorMessage"), contains("Database error"));
+        verify(model).addAttribute(eq("ruleNames"), eq(List.of()));
+    }
+
+    @Test
+    void searchRules_shouldRedirectOnEmptyKeyword() {
+        String view = controller.searchRules("   ", model);
+        assertEquals("redirect:/ruleName/list", view);
+
+        view = controller.searchRules(null, model);
+        assertEquals("redirect:/ruleName/list", view);
+    }
+
+    @Test
+    void searchRules_shouldHandleException() {
+        when(ruleNameService.findByKeyword("test")).thenThrow(new RuntimeException("Search error"));
+
+        String view = controller.searchRules("test", model);
+        assertEquals("ruleName/list", view);
+        verify(model).addAttribute(eq("errorMessage"), contains("Search error"));
+        verify(model).addAttribute(eq("ruleNames"), eq(List.of()));
+    }
+
+    @Test
+    void home_shouldHandleException() {
+        when(ruleNameService.findAll()).thenThrow(new RuntimeException("Database error"));
+
+        String view = controller.home(model, null, null);
+        assertEquals("ruleName/list", view);
+        verify(model).addAttribute(eq("errorMessage"), contains("Database error"));
+        verify(model).addAttribute(eq("ruleNames"), eq(List.of()));
+    }
+
+    @Test
+    void validate_shouldHandleUnexpectedException() {
+        when(bindingResult.hasErrors()).thenReturn(false);
+        RuleNameDTO dto = new RuleNameDTO();
+        RuleName entity = new RuleName();
+        when(ruleNameMapper.toEntity(dto)).thenReturn(entity);
+        when(ruleNameService.save(entity)).thenThrow(new RuntimeException("Unexpected error"));
+
+        String view = controller.validate(dto, bindingResult, model, redirectAttributes);
+        assertEquals("ruleName/add", view);
+        verify(model).addAttribute(eq("errorMessage"), contains("Unexpected error"));
+    }
+
+    @Test
+    void updateRuleName_shouldHandleNotFound() {
+        when(bindingResult.hasErrors()).thenReturn(false);
+        RuleNameDTO dto = new RuleNameDTO();
+        when(ruleNameService.findById(999)).thenReturn(Optional.empty());
+
+        String view = controller.updateRuleName(999, dto, bindingResult, model, redirectAttributes);
+        assertEquals("ruleName/update", view);
+        verify(model).addAttribute(eq("errorMessage"), contains("RuleName not found"));
+    }
+
+    @Test
+    void updateRuleName_shouldHandleUnexpectedException() {
+        when(bindingResult.hasErrors()).thenReturn(false);
+        RuleName rule = new RuleName();
+        RuleNameDTO dto = new RuleNameDTO();
+        when(ruleNameService.findById(1)).thenReturn(Optional.of(rule));
+        doNothing().when(ruleNameMapper).updateEntityFromDTO(rule, dto);
+        when(ruleNameService.save(rule)).thenThrow(new RuntimeException("Unexpected error"));
+
+        String view = controller.updateRuleName(1, dto, bindingResult, model, redirectAttributes);
+        assertEquals("ruleName/update", view);
+        verify(model).addAttribute(eq("errorMessage"), contains("Unexpected error"));
+    }
+
+    @Test
+    void showUpdateForm_shouldHandleUnexpectedException() {
+        when(ruleNameService.findById(1)).thenThrow(new RuntimeException("Database error"));
+
+        String view = controller.showUpdateForm(1, model);
+        assertEquals("redirect:/ruleName/list?error=unexpected", view);
+    }
+
+    @Test
+    void deleteRuleName_shouldHandleUnexpectedException() {
+        doThrow(new RuntimeException("Database error")).when(ruleNameService).deleteById(1);
+
+        String view = controller.deleteRuleName(1, redirectAttributes);
+        assertEquals("redirect:/ruleName/list", view);
+        verify(redirectAttributes).addAttribute(eq("error"), eq("unexpected"));
+    }
+
+    @Test
+    void home_shouldHandleStatusMessages() {
+        when(ruleNameService.findAll()).thenReturn(List.of());
+
+        String view = controller.home(model, "success", "notfound");
+        assertEquals("ruleName/list", view);
+        verify(model).addAttribute(eq("successMessage"), eq("success"));
+        verify(model).addAttribute(eq("errorMessage"), eq("Business rule not found"));
+    }
+
+    @Test
+    void home_shouldHandleInvalidErrorMessage() {
+        when(ruleNameService.findAll()).thenReturn(List.of());
+
+        String view = controller.home(model, null, "invalid");
+        assertEquals("ruleName/list", view);
+        verify(model).addAttribute(eq("errorMessage"), eq("Invalid rule ID provided"));
+    }
+
+    @Test
+    void home_shouldHandleUnexpectedErrorMessage() {
+        when(ruleNameService.findAll()).thenReturn(List.of());
+
+        String view = controller.home(model, null, "unexpected");
+        assertEquals("ruleName/list", view);
+        verify(model).addAttribute(eq("errorMessage"), eq("An unexpected error occurred"));
+    }
+
+    @Test
+    void home_shouldHandleCustomErrorMessage() {
+        when(ruleNameService.findAll()).thenReturn(List.of());
+
+        String view = controller.home(model, null, "custom error");
+        assertEquals("ruleName/list", view);
+        verify(model).addAttribute(eq("errorMessage"), eq("custom error"));
+    }
+
+    @Test
+    void showUpdateForm_shouldHandleInvalidId() {
+        String view = controller.showUpdateForm(0, model);
+        assertEquals("redirect:/ruleName/list?error=notfound", view);
+
+        view = controller.showUpdateForm(null, model);
+        assertEquals("redirect:/ruleName/list?error=notfound", view);
+    }
+
+    @Test
+    void updateRuleName_shouldHandleInvalidId() {
+        when(bindingResult.hasErrors()).thenReturn(false);
+        RuleNameDTO dto = new RuleNameDTO();
+
+        String view = controller.updateRuleName(-1, dto, bindingResult, model, redirectAttributes);
+        assertEquals("ruleName/update", view);
+        verify(model).addAttribute(eq("errorMessage"), contains("Invalid ID"));
+    }
+
+    @Test
+    void deleteRuleName_shouldHandleInvalidId() {
+        String view = controller.deleteRuleName(0, redirectAttributes);
+        assertEquals("redirect:/ruleName/list", view);
+        verify(redirectAttributes).addAttribute(eq("error"), eq("notfound"));
     }
 }

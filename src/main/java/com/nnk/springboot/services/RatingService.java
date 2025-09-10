@@ -5,6 +5,8 @@ import com.nnk.springboot.repositories.RatingRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Optional;
@@ -49,6 +51,7 @@ import java.util.Optional;
 @Service
 @Transactional
 public class RatingService implements IRatingService {
+    private static final Logger logger = LoggerFactory.getLogger(RatingService.class);
 
     @Autowired
     private RatingRepository ratingRepository;
@@ -248,11 +251,10 @@ public class RatingService implements IRatingService {
             hasInvestmentGrade |= isInvestmentGradeFitch(rating.getFitchRating());
             hasSpeculativeGrade |= !isInvestmentGradeFitch(rating.getFitchRating());
         }
-        
-        // Avertissement si incohérence majeure (optionnel - peut être adapté selon besoins)
+
         if (hasInvestmentGrade && hasSpeculativeGrade) {
-            // Log warning mais n'empêche pas la sauvegarde car les divergences existent
-            System.out.println("Warning: Inconsistent ratings between agencies for this rating");
+        // Log warning mais n'empêche pas la sauvegarde car les divergences existent
+        logger.warn("Inconsistent ratings between agencies for this rating");
         }
     }
 

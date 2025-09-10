@@ -43,6 +43,10 @@
 			<artifactId>spring-boot-starter-security</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>org.thymeleaf.extras</groupId>
+			<artifactId>thymeleaf-extras-springsecurity6</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-devtools</artifactId>
 			<optional>true</optional>
@@ -111,7 +115,6 @@
 						<exclude>
 							<groupId>org.projectlombok</groupId>
 							<artifactId>lombok</artifactId>
-							<version>1.18.24</version>
 						</exclude>
 					</excludes>
 				</configuration>
@@ -129,7 +132,7 @@
 						<!-- Exclusion des classes de configuration -->
 						<exclude>**/config/**</exclude>
 						<!-- Exclusion de la classe principale -->
-						<exclude>**/PaymybuddyApplication.class</exclude>
+						<exclude>**/Application.class</exclude>
 						<!-- Exclusion des DTOs sans logique métier -->
 						<exclude>**/dto/**</exclude>
 						<!-- Exclusion des entités JPA -->

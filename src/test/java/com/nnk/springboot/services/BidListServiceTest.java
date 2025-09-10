@@ -365,7 +365,7 @@ class BidListServiceTest {
     
     @Test
     void validateBidList_WithValidData_ShouldPass() {
-        // Given - validBidList is already set up with valid data
+        // Given - validBidList est déjà configurée avec des données valides
         
         // When
         BidList result = bidListService.save(validBidList);

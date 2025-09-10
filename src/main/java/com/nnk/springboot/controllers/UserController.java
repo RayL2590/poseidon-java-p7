@@ -1,9 +1,8 @@
 package com.nnk.springboot.controllers;
 
-import com.nnk.springboot.domain.User;
-import com.nnk.springboot.repositories.UserRepository;
+import com.nnk.springboot.dto.UserDTO;
+import com.nnk.springboot.services.IUserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -11,28 +10,30 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import jakarta.validation.Valid;
+import java.util.List;
 
 /**
- * Contrôleur Spring MVC pour la gestion des utilisateurs de l'application.
+ * Contrôleur Spring MVC pour la gestion des utilisateurs (User).
  * 
  * <p>Ce contrôleur gère l'ensemble des opérations CRUD (Create, Read, Update, Delete)
- * pour les entités User via une interface web. Il inclut la gestion sécurisée des
- * mots de passe avec chiffrement BCrypt et la validation des données utilisateur.</p>
+ * pour les entités User via une interface web. Il utilise le pattern DTO pour
+ * la conversion des données entre les couches de présentation et de service.</p>
  * 
- * <p>Fonctionnalités principales :</p>
+ * <p>Architecture respectant les principes SOLID :</p>
  * <ul>
- *   <li>Affichage de la liste des utilisateurs</li>
- *   <li>Création de nouveaux utilisateurs avec chiffrement du mot de passe</li>
- *   <li>Modification des utilisateurs existants</li>
- *   <li>Suppression d'utilisateurs</li>
- *   <li>Validation des données avec Bean Validation</li>
+ *   <li><strong>SRP</strong> : Gestion uniquement de l'interface web pour User</li>
+ *   <li><strong>OCP</strong> : Extensible pour nouvelles fonctionnalités</li>
+ *   <li><strong>LSP</strong> : Respect du contrat Controller Spring</li>
+ *   <li><strong>ISP</strong> : Interface spécialisée pour les opérations User</li>
+ *   <li><strong>DIP</strong> : Dépend d'abstractions (Service)</li>
  * </ul>
  * 
- * <p>Sécurité : Tous les mots de passe sont automatiquement chiffrés avec BCrypt
- * avant la sauvegarde en base de données. Lors de la modification, le mot de passe
- * existant est masqué pour des raisons de sécurité.</p>
+ * <p>Toutes les méthodes incluent une gestion d'erreurs robuste et un logging approprié
+ * pour faciliter le débogage et la maintenance. La sécurité est assurée par le chiffrement
+ * des mots de passe et la validation de l'unicité des noms d'utilisateur.</p>
  * 
  * @author Poseidon Trading App
  * @version 1.0
@@ -40,146 +41,215 @@ import jakarta.validation.Valid;
  */
 @Controller
 public class UserController {
-    /** Repository des utilisateurs injecté par Spring pour l'accès aux données */
+    
+    /** Service de gestion des utilisateurs injecté par Spring */
     @Autowired
-    private UserRepository userRepository;
+    private IUserService userService;
 
     /**
-     * Affiche la liste de tous les utilisateurs de l'application.
+     * Affiche la liste de tous les utilisateurs.
      * 
-     * <p>Cette méthode récupère tous les utilisateurs depuis le repository
-     * et les passe à la vue pour affichage. Elle constitue la page principale
-     * de gestion des utilisateurs.</p>
+     * <p>Cette méthode récupère tous les utilisateurs sous forme de DTOs depuis le service
+     * et gère les erreurs potentielles lors du chargement. En cas d'erreur technique,
+     * elle redirige vers une page d'erreur générique.</p>
      * 
      * @param model Le modèle Spring MVC pour passer les données à la vue
-     * @return Le nom de la vue Thymeleaf "user/list" contenant la liste des utilisateurs
+     * @return Le nom de la vue Thymeleaf "user/list" ou "error" en cas d'erreur
      */
     @RequestMapping("/user/list")
-    public String home(Model model)
-    {
-        model.addAttribute("users", userRepository.findAll());
-        return "user/list";
+    public String home(Model model) {
+        try {
+            List<UserDTO> userDTOs = userService.findAllAsDTO();
+            model.addAttribute("users", userDTOs);
+            return "user/list";
+        } catch (Exception e) {
+            model.addAttribute("errorMessage", "Erreur lors du chargement des utilisateurs");
+            return "error";
+        }
     }
 
     /**
      * Affiche le formulaire de création d'un nouvel utilisateur.
      * 
-     * <p>Cette méthode prépare l'affichage du formulaire de création d'utilisateur.
-     * Un objet User vide est automatiquement lié au formulaire pour la saisie
-     * des données du nouvel utilisateur.</p>
+     * <p>Cette méthode prépare un DTO vide qui sera utilisé pour lier
+     * les données du formulaire de création d'un nouvel utilisateur.</p>
      * 
-     * @param bid L'objet User vide qui sera lié au formulaire (binding automatique Spring)
-     * @return Le nom de la vue Thymeleaf "user/add" contenant le formulaire de création
+     * @param model Le modèle Spring MVC pour passer les données à la vue
+     * @return Le nom de la vue Thymeleaf "user/add"
      */
     @GetMapping("/user/add")
-    public String addUser(User bid) {
+    public String addUser(Model model) {
+        model.addAttribute("user", new UserDTO());
         return "user/add";
     }
 
     /**
      * Traite la soumission du formulaire de création d'un utilisateur.
      * 
-     * <p>Cette méthode valide les données soumises via Bean Validation, chiffre
-     * le mot de passe avec BCrypt pour la sécurité, sauvegarde l'utilisateur
-     * en base de données et redirige vers la liste des utilisateurs en cas de succès.
-     * En cas d'erreur de validation, elle retourne au formulaire de création.</p>
+     * <p>Cette méthode valide les données soumises via Bean Validation, effectue
+     * la création via le service métier qui gère le chiffrement du mot de passe
+     * et la validation de l'unicité du nom d'utilisateur. En cas de succès,
+     * elle redirige vers la liste avec un message de succès. En cas d'erreur
+     * de validation ou d'exception métier, elle retourne au formulaire avec
+     * un message d'erreur approprié.</p>
      * 
-     * <p>Sécurité : Le mot de passe est automatiquement chiffré avec BCrypt
-     * avant la sauvegarde pour garantir la sécurité des données.</p>
-     * 
-     * @param user L'objet User contenant les données saisies, validé avec Bean Validation
+     * @param userDTO Les données de l'utilisateur à créer, validées avec Bean Validation
      * @param result Le résultat de la validation Bean Validation
      * @param model Le modèle Spring MVC pour passer les données à la vue
-     * @return Redirection vers la liste des utilisateurs en cas de succès, ou retour au formulaire en cas d'erreur
+     * @param redirectAttributes Attributs pour la redirection (messages de succès/erreur)
+     * @return Redirection vers la liste en cas de succès, ou retour au formulaire en cas d'erreur
      */
     @PostMapping("/user/validate")
-    public String validate(@Valid User user, BindingResult result, Model model) {
-        if (!result.hasErrors()) {
-            BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-            user.setPassword(encoder.encode(user.getPassword()));
-            userRepository.save(user);
-            model.addAttribute("users", userRepository.findAll());
-            return "redirect:/user/list";
+    public String validate(@Valid UserDTO userDTO, BindingResult result, Model model, 
+                          RedirectAttributes redirectAttributes) {
+        if (result.hasErrors()) {
+            return "user/add";
         }
-        return "user/add";
+        
+        try {
+            // Création via service métier avec DTO (validation + chiffrement)
+            UserDTO savedUser = userService.saveFromDTO(userDTO);
+            
+            // Message de succès pour l'utilisateur
+            redirectAttributes.addFlashAttribute("successMessage", 
+                "Utilisateur '" + savedUser.getUsername() + "' créé avec succès");
+            
+            return "redirect:/user/list";
+            
+        } catch (IllegalArgumentException e) {
+            // Erreurs métier (username existe, données invalides)
+            model.addAttribute("errorMessage", e.getMessage());
+            return "user/add";
+            
+        } catch (Exception e) {
+            // Erreurs techniques inattendues
+            model.addAttribute("errorMessage", 
+                "Erreur technique lors de la création de l'utilisateur");
+            return "user/add";
+        }
     }
 
     /**
      * Affiche le formulaire de modification d'un utilisateur existant.
      * 
-     * <p>Cette méthode récupère un utilisateur par son ID, masque son mot de passe
-     * pour des raisons de sécurité (en le vidant), et passe l'utilisateur au
-     * formulaire de modification. Une exception est levée si l'utilisateur
-     * n'existe pas.</p>
-     * 
-     * <p>Sécurité : Le mot de passe existant est automatiquement masqué (défini à "")
-     * pour éviter d'exposer le hash du mot de passe dans le formulaire.</p>
+     * <p>Cette méthode récupère un utilisateur par son ID depuis le service
+     * sous forme de DTO et le passe au formulaire de modification.
+     * Elle inclut une validation de l'existence de l'entité et une gestion
+     * d'erreurs robuste avec redirection vers la liste en cas d'erreur.</p>
      * 
      * @param id L'identifiant de l'utilisateur à modifier
      * @param model Le modèle Spring MVC pour passer les données à la vue
-     * @return Le nom de la vue "user/update" contenant le formulaire de modification
-     * @throws IllegalArgumentException si l'utilisateur avec l'ID spécifié n'existe pas
+     * @param redirectAttributes Attributs pour la redirection (messages d'erreur)
+     * @return Le nom de la vue "user/update" ou redirection vers la liste en cas d'erreur
      */
     @GetMapping("/user/update/{id}")
-    public String showUpdateForm(@PathVariable("id") Integer id, Model model) {
-        User user = userRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Invalid user Id:" + id));
-        user.setPassword("");
-        model.addAttribute("user", user);
-        return "user/update";
+    public String showUpdateForm(@PathVariable("id") Integer id, Model model, 
+                                RedirectAttributes redirectAttributes) {
+        try {
+            UserDTO userDTO = userService.findByIdAsDTO(id)
+                .orElseThrow(() -> new IllegalArgumentException("Utilisateur avec ID " + id + " non trouvé"));
+            
+            model.addAttribute("user", userDTO);
+            return "user/update";
+            
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:/user/list";
+            
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", 
+                "Erreur technique lors du chargement de l'utilisateur");
+            return "redirect:/user/list";
+        }
     }
 
     /**
      * Traite la soumission du formulaire de modification d'un utilisateur.
      * 
-     * <p>Cette méthode valide les données modifiées via Bean Validation, chiffre
-     * le nouveau mot de passe avec BCrypt, met à jour l'utilisateur en base de
-     * données et redirige vers la liste des utilisateurs en cas de succès.
-     * En cas d'erreur de validation, elle retourne au formulaire de modification.</p>
-     * 
-     * <p>Sécurité : Le mot de passe est systématiquement re-chiffré avec BCrypt,
-     * même s'il s'agit du même mot de passe (recommandation de sécurité).</p>
+     * <p>Cette méthode valide les données modifiées via Bean Validation,
+     * effectue la mise à jour via le service métier qui gère le chiffrement
+     * du mot de passe et la validation de l'unicité du nom d'utilisateur.
+     * En cas de succès, elle redirige vers la liste avec un message de succès.
+     * En cas d'erreur, elle retourne au formulaire avec un message d'erreur approprié.</p>
      * 
      * @param id L'identifiant de l'utilisateur à modifier
-     * @param user L'objet User contenant les données modifiées, validé avec Bean Validation
+     * @param userDTO Les données modifiées de l'utilisateur, validées avec Bean Validation
      * @param result Le résultat de la validation Bean Validation
      * @param model Le modèle Spring MVC pour passer les données à la vue
-     * @return Redirection vers la liste des utilisateurs en cas de succès, ou retour au formulaire en cas d'erreur
+     * @param redirectAttributes Attributs pour la redirection (messages de succès/erreur)
+     * @return Redirection vers la liste en cas de succès, ou retour au formulaire en cas d'erreur
      */
     @PostMapping("/user/update/{id}")
-    public String updateUser(@PathVariable("id") Integer id, @Valid User user,
-                             BindingResult result, Model model) {
+    public String updateUser(@PathVariable("id") Integer id, @Valid UserDTO userDTO,
+                             BindingResult result, Model model, 
+                             RedirectAttributes redirectAttributes) {
         if (result.hasErrors()) {
             return "user/update";
         }
 
-        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-        user.setPassword(encoder.encode(user.getPassword()));
-        user.setId(id);
-        userRepository.save(user);
-        model.addAttribute("users", userRepository.findAll());
-        return "redirect:/user/list";
+        try {
+            // Mise à jour via service métier avec DTO (validation unicité + chiffrement)
+            UserDTO updatedUser = userService.updateFromDTO(id, userDTO);
+            
+            // Message de succès
+            redirectAttributes.addFlashAttribute("successMessage", 
+                "Utilisateur '" + updatedUser.getUsername() + "' mis à jour avec succès");
+            
+            return "redirect:/user/list";
+            
+        } catch (IllegalArgumentException e) {
+            // Erreurs métier (utilisateur inexistant, username déjà utilisé)
+            model.addAttribute("errorMessage", e.getMessage());
+            return "user/update";
+            
+        } catch (Exception e) {
+            // Erreurs techniques inattendues
+            model.addAttribute("errorMessage", 
+                "Erreur technique lors de la mise à jour de l'utilisateur");
+            return "user/update";
+        }
     }
 
     /**
      * Supprime un utilisateur par son identifiant.
      * 
-     * <p>Cette méthode récupère l'utilisateur par son ID, le supprime de la base
-     * de données et redirige vers la liste des utilisateurs. Une exception est
-     * levée si l'utilisateur n'existe pas.</p>
-     * 
-     * <p>Attention : Cette opération est irréversible. L'utilisateur et toutes
-     * ses données associées seront définitivement supprimés de la base de données.</p>
+     * <p>Cette méthode récupère d'abord l'utilisateur pour obtenir son nom
+     * d'utilisateur (à des fins de message de confirmation), puis effectue
+     * la suppression via le service métier. Elle redirige vers la liste
+     * avec un message de succès ou d'erreur selon le résultat de l'opération.
+     * La gestion d'erreurs inclut les cas de validation métier et les erreurs techniques.</p>
      * 
      * @param id L'identifiant de l'utilisateur à supprimer
-     * @param model Le modèle Spring MVC pour passer les données à la vue
-     * @return Redirection vers la liste des utilisateurs après suppression
-     * @throws IllegalArgumentException si l'utilisateur avec l'ID spécifié n'existe pas
+     * @param redirectAttributes Attributs pour la redirection (messages de succès/erreur)
+     * @return Redirection vers la liste avec un message de statut approprié
      */
     @GetMapping("/user/delete/{id}")
-    public String deleteUser(@PathVariable("id") Integer id, Model model) {
-        User user = userRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Invalid user Id:" + id));
-        userRepository.delete(user);
-        model.addAttribute("users", userRepository.findAll());
+    public String deleteUser(@PathVariable("id") Integer id, 
+                            RedirectAttributes redirectAttributes) {
+        try {
+            // Récupération pour message de confirmation
+            UserDTO user = userService.findByIdAsDTO(id)
+                .orElseThrow(() -> new IllegalArgumentException("Utilisateur avec ID " + id + " non trouvé"));
+            
+            String username = user.getUsername();
+            
+            // Suppression via service métier
+            userService.deleteById(id);
+            
+            // Message de succès
+            redirectAttributes.addFlashAttribute("successMessage", 
+                "Utilisateur '" + username + "' supprimé avec succès");
+            
+        } catch (IllegalArgumentException e) {
+            // Erreur utilisateur inexistant
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            
+        } catch (Exception e) {
+            // Erreur technique
+            redirectAttributes.addFlashAttribute("errorMessage", 
+                "Erreur technique lors de la suppression de l'utilisateur");
+        }
+        
         return "redirect:/user/list";
     }
 }

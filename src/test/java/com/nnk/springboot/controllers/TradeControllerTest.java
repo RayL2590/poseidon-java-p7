@@ -118,7 +118,7 @@ public class TradeControllerTest {
     void testAddTradeForm() throws Exception {
         mockMvc.perform(get("/trade/add"))
                 .andExpect(status().isOk())
-                .andExpect(model().attributeExists("tradeDTO"));
+                .andExpect(model().attributeExists("trade"));
     }
 
     @Test
@@ -146,7 +146,7 @@ public class TradeControllerTest {
     @WithMockUser
     void testValidateTradeWithValidationErrors() throws Exception {
         mockMvc.perform(post("/trade/validate")
-                .param("account", "") // Account vide - erreur de validation
+                .param("account", "") // Compte vide - erreur de validation
                 .param("type", "BUY")
                 .param("buyQuantity", "1000.0")
                 .param("buyPrice", "25.50")

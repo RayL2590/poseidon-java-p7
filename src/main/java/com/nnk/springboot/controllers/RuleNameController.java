@@ -302,13 +302,6 @@ public class RuleNameController {
         
         try {
             validateId(id);
-            
-            // Log de la règle avant suppression pour audit
-            ruleNameService.findById(id).ifPresent(ruleName -> {
-                logger.info("Deleting RuleName - ID: {}, Name: {}, Description: {}", 
-                           ruleName.getId(), ruleName.getName(), ruleName.getDescription());
-            });
-            
             ruleNameService.deleteById(id);
             
             logger.info("Successfully deleted RuleName: ID={}", id);
